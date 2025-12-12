@@ -1,20 +1,557 @@
-// opencode config for team7
+// opencode config for raste's agents
 {
   "$schema": "https://opencode.ai/config.json",
+  "autoupdate": false,
+  "tui": {
+    "scroll_speed": 3,
+    "scroll_acceleration": {
+      "enabled": true
+    }
+  },
   "agent": {
+    // ============================================================
+    // PRIMARY AGENTS
+    // ============================================================
     "team7": {
-      "description": "team7 agent",
+      "description": "team7 - Elite Offensive Security Orchestration Agent",
       "mode": "primary",
       "prompt": "{file:./team7.md}",
-      "temperature": 0.9,
+      "temperature": 0.3,
       "tools": {
         "*": true
       },
       "permission": {
-        "edit": "ask",
-        "bash": "ask",
-        "webfetch": "ask"
+        "edit": "allow",
+        "bash": "allow",
+        "webfetch": "allow"
+      }
+    },
+
+    // ============================================================
+    // T7 SUB-AGENTS: Phase 1 - Reconnaissance & Analysis
+    // ============================================================
+    "t7-recon-agent": {
+      "description": "Deep system reconnaissance, OSINT, network enumeration, and attack surface mapping",
+      "mode": "subagent",
+      "prompt": "{file:./agent/t7-recon-agent.md}",
+      "temperature": 0.2,
+      "maxSteps": 50,
+      "tools": {
+        "write": false,
+        "edit": false,
+        "bash": true,
+        "read": true,
+        "glob": true,
+        "grep": true,
+        "list": true,
+        "webfetch": true
+      },
+      "permission": {
+        "bash": "allow"
+      }
+    },
+
+    "t7-vuln-analysis-agent": {
+      "description": "Vulnerability scanning, CVE analysis, misconfiguration detection, and security weakness identification",
+      "mode": "subagent",
+      "prompt": "{file:./agent/t7-vuln-analysis-agent.md}",
+      "temperature": 0.2,
+      "maxSteps": 50,
+      "tools": {
+        "write": false,
+        "edit": false,
+        "bash": true,
+        "read": true,
+        "glob": true,
+        "grep": true,
+        "list": true,
+        "webfetch": true
+      },
+      "permission": {
+        "bash": "allow"
+      }
+    },
+
+    "t7-container-security-agent": {
+      "description": "Container escape testing, Docker/containerd security, namespace isolation, and image security (TC-001 to TC-007)",
+      "mode": "subagent",
+      "prompt": "{file:./agent/t7-container-security-agent.md}",
+      "temperature": 0.2,
+      "maxSteps": 50,
+      "tools": {
+        "write": false,
+        "edit": false,
+        "bash": true,
+        "read": true,
+        "glob": true,
+        "grep": true,
+        "list": true
+      },
+      "permission": {
+        "bash": "allow"
+      }
+    },
+
+    "t7-auth-bypass-agent": {
+      "description": "Authentication testing, credential attacks, account mapping, and access control bypass (TC-008, TC-009)",
+      "mode": "subagent",
+      "prompt": "{file:./agent/t7-auth-bypass-agent.md}",
+      "temperature": 0.2,
+      "maxSteps": 50,
+      "tools": {
+        "write": false,
+        "edit": false,
+        "bash": true,
+        "read": true,
+        "glob": true,
+        "grep": true,
+        "list": true
+      },
+      "permission": {
+        "bash": "allow"
+      }
+    },
+
+    "t7-dataflow-mapping-agent": {
+      "description": "Network traffic analysis, dataflow mapping, protocol analysis, and communication path documentation",
+      "mode": "subagent",
+      "prompt": "{file:./agent/t7-dataflow-mapping-agent.md}",
+      "temperature": 0.2,
+      "maxSteps": 50,
+      "tools": {
+        "write": false,
+        "edit": false,
+        "bash": true,
+        "read": true,
+        "glob": true,
+        "grep": true,
+        "list": true
+      },
+      "permission": {
+        "bash": "allow"
+      }
+    },
+
+    "t7-certificate-agent": {
+      "description": "Certificate analysis, TLS/SSL testing, cryptographic review, and key management assessment (TC-010)",
+      "mode": "subagent",
+      "prompt": "{file:./agent/t7-certificate-agent.md}",
+      "temperature": 0.2,
+      "maxSteps": 30,
+      "tools": {
+        "write": false,
+        "edit": false,
+        "bash": true,
+        "read": true,
+        "glob": true,
+        "grep": true,
+        "list": true
+      },
+      "permission": {
+        "bash": "allow"
+      }
+    },
+
+    "t7-compliance-agent": {
+      "description": "CIS benchmark assessment, NIAP compliance verification, and security standards auditing",
+      "mode": "subagent",
+      "prompt": "{file:./agent/t7-compliance-agent.md}",
+      "temperature": 0.1,
+      "maxSteps": 100,
+      "tools": {
+        "write": true,
+        "edit": false,
+        "bash": true,
+        "read": true,
+        "glob": true,
+        "grep": true,
+        "list": true
+      },
+      "permission": {
+        "bash": "allow",
+        "edit": "deny"
+      }
+    },
+
+    // ============================================================
+    // T7 SUB-AGENTS: Phase 2 - Exploitation & Movement
+    // ============================================================
+    "t7-exploitation-agent": {
+      "description": "Exploit development, privilege escalation, proof-of-concept creation, and vulnerability weaponization",
+      "mode": "subagent",
+      "prompt": "{file:./agent/t7-exploitation-agent.md}",
+      "temperature": 0.3,
+      "maxSteps": 50,
+      "tools": {
+        "write": true,
+        "edit": false,
+        "bash": true,
+        "read": true,
+        "glob": true,
+        "grep": true,
+        "list": true
+      },
+      "permission": {
+        "bash": "allow"
+      }
+    },
+
+    "t7-cloud-pivot-agent": {
+      "description": "Cloud backend access attempts, AWS/Azure/GCP exploitation, and target-to-backend pivot testing",
+      "mode": "subagent",
+      "prompt": "{file:./agent/t7-cloud-pivot-agent.md}",
+      "temperature": 0.3,
+      "maxSteps": 50,
+      "tools": {
+        "write": false,
+        "edit": false,
+        "bash": true,
+        "read": true,
+        "glob": true,
+        "grep": true,
+        "list": true,
+        "webfetch": true
+      },
+      "permission": {
+        "bash": "allow",
+        "webfetch": "allow"
+      }
+    },
+
+    "t7-reverse-tunnel-agent": {
+      "description": "Reverse tunneling, covert channel establishment, C2 communication, and network security bypass",
+      "mode": "subagent",
+      "prompt": "{file:./agent/t7-reverse-tunnel-agent.md}",
+      "temperature": 0.3,
+      "maxSteps": 40,
+      "tools": {
+        "write": true,
+        "edit": false,
+        "bash": true,
+        "read": true,
+        "glob": true,
+        "grep": true,
+        "list": true
+      },
+      "permission": {
+        "bash": "allow"
+      }
+    },
+
+    "t7-lateral-movement-agent": {
+      "description": "Lateral movement testing, pivoting between systems, and internal network traversal",
+      "mode": "subagent",
+      "prompt": "{file:./agent/t7-lateral-movement-agent.md}",
+      "temperature": 0.3,
+      "maxSteps": 50,
+      "tools": {
+        "write": false,
+        "edit": false,
+        "bash": true,
+        "read": true,
+        "glob": true,
+        "grep": true,
+        "list": true
+      },
+      "permission": {
+        "bash": "allow"
+      }
+    },
+
+    "t7-persistence-agent": {
+      "description": "Persistence mechanism analysis, backdoor detection, and access maintenance testing",
+      "mode": "subagent",
+      "prompt": "{file:./agent/t7-persistence-agent.md}",
+      "temperature": 0.2,
+      "maxSteps": 40,
+      "tools": {
+        "write": false,
+        "edit": false,
+        "bash": true,
+        "read": true,
+        "glob": true,
+        "grep": true,
+        "list": true
+      },
+      "permission": {
+        "bash": "allow"
+      }
+    },
+
+    // ============================================================
+    // T7 SUB-AGENTS: Phase 3 - Data Exfiltration
+    // ============================================================
+    "t7-data-exfiltration-agent": {
+      "description": "Data exfiltration testing, sensitive data identification, and data exposure risk demonstration",
+      "mode": "subagent",
+      "prompt": "{file:./agent/t7-data-exfiltration-agent.md}",
+      "temperature": 0.3,
+      "maxSteps": 40,
+      "tools": {
+        "write": false,
+        "edit": false,
+        "bash": true,
+        "read": true,
+        "glob": true,
+        "grep": true,
+        "list": true
+      },
+      "permission": {
+        "bash": "allow"
+      }
+    },
+
+    // ============================================================
+    // T7 SUB-AGENTS: Support - Tools, Evidence, Reporting
+    // ============================================================
+    "t7-social-engineering-agent": {
+      "description": "Social engineering assessment, phishing simulation, and human-factor security testing",
+      "mode": "subagent",
+      "prompt": "{file:./agent/t7-social-engineering-agent.md}",
+      "temperature": 0.4,
+      "maxSteps": 30,
+      "tools": {
+        "write": true,
+        "edit": false,
+        "bash": true,
+        "read": true,
+        "glob": true,
+        "grep": true,
+        "list": true,
+        "webfetch": true
+      },
+      "permission": {
+        "bash": "allow",
+        "webfetch": "allow"
+      }
+    },
+
+    "t7-evidence-collection-agent": {
+      "description": "Evidence collection, chain of custody documentation, and forensic artifact preservation",
+      "mode": "subagent",
+      "prompt": "{file:./agent/t7-evidence-collection-agent.md}",
+      "temperature": 0.1,
+      "maxSteps": 50,
+      "tools": {
+        "write": true,
+        "edit": true,
+        "bash": true,
+        "read": true,
+        "glob": true,
+        "grep": true,
+        "list": true
+      },
+      "permission": {
+        "bash": "allow",
+        "edit": "allow"
+      }
+    },
+
+    "t7-tools-arsenal-agent": {
+      "description": "Security tools management, deployment guidance, and tool configuration support",
+      "mode": "subagent",
+      "prompt": "{file:./agent/t7-tools-arsenal-agent.md}",
+      "temperature": 0.2,
+      "maxSteps": 40,
+      "tools": {
+        "write": false,
+        "edit": false,
+        "bash": true,
+        "read": true,
+        "glob": true,
+        "grep": true,
+        "list": true,
+        "webfetch": true
+      },
+      "permission": {
+        "bash": "allow",
+        "webfetch": "allow"
+      }
+    },
+
+    "t7-report-generation-agent": {
+      "description": "Report generation, finding documentation, executive summaries, and FedRAMP deliverables",
+      "mode": "subagent",
+      "prompt": "{file:./agent/t7-report-generation-agent.md}",
+      "temperature": 0.2,
+      "maxSteps": 100,
+      "tools": {
+        "write": true,
+        "edit": true,
+        "bash": true,
+        "read": true,
+        "glob": true,
+        "grep": true,
+        "list": true
+      },
+      "permission": {
+        "bash": "allow",
+        "edit": "allow"
+      }
+    },
+
+    // ============================================================
+    // T7 SUB-AGENTS: Specialized Security Roles
+    // ============================================================
+    "t7-bbhunter": {
+      "description": "Bug bounty hunting, vulnerability discovery, responsible disclosure, and bounty program engagement",
+      "mode": "subagent",
+      "prompt": "{file:./agent/t7-bbhunter.md}",
+      "temperature": 0.3,
+      "maxSteps": 50,
+      "tools": {
+        "write": true,
+        "edit": false,
+        "bash": true,
+        "read": true,
+        "glob": true,
+        "grep": true,
+        "list": true,
+        "webfetch": true
+      },
+      "permission": {
+        "bash": "allow",
+        "webfetch": "allow"
+      }
+    },
+
+    "t7-malwareanalyst": {
+      "description": "Malware analysis, reverse engineering, behavioral analysis, and threat identification",
+      "mode": "subagent",
+      "prompt": "{file:./agent/t7-malwareanalyst.md}",
+      "temperature": 0.2,
+      "maxSteps": 50,
+      "tools": {
+        "write": true,
+        "edit": false,
+        "bash": true,
+        "read": true,
+        "glob": true,
+        "grep": true,
+        "list": true
+      },
+      "permission": {
+        "bash": "allow"
+      }
+    },
+
+    "t7-pentester": {
+      "description": "External and internal penetration testing, network exploitation, and comprehensive security assessment",
+      "mode": "subagent",
+      "prompt": "{file:./agent/t7-pentester.md}",
+      "temperature": 0.3,
+      "maxSteps": 50,
+      "tools": {
+        "write": true,
+        "edit": false,
+        "bash": true,
+        "read": true,
+        "glob": true,
+        "grep": true,
+        "list": true,
+        "webfetch": true
+      },
+      "permission": {
+        "bash": "allow",
+        "webfetch": "allow"
+      }
+    },
+
+    "t7-pentesterweb": {
+      "description": "Web application penetration testing, OWASP methodology, API security, and web exploitation",
+      "mode": "subagent",
+      "prompt": "{file:./agent/t7-pentesterweb.md}",
+      "temperature": 0.3,
+      "maxSteps": 50,
+      "tools": {
+        "write": true,
+        "edit": false,
+        "bash": true,
+        "read": true,
+        "glob": true,
+        "grep": true,
+        "list": true,
+        "webfetch": true
+      },
+      "permission": {
+        "bash": "allow",
+        "webfetch": "allow"
+      }
+    },
+
+    "t7-redteamer": {
+      "description": "Red team operations, adversary emulation, initial access, and full-scope offensive security",
+      "mode": "subagent",
+      "prompt": "{file:./agent/t7-redteamer.md}",
+      "temperature": 0.3,
+      "maxSteps": 50,
+      "tools": {
+        "write": true,
+        "edit": false,
+        "bash": true,
+        "read": true,
+        "glob": true,
+        "grep": true,
+        "list": true,
+        "webfetch": true
+      },
+      "permission": {
+        "bash": "allow",
+        "webfetch": "allow"
+      }
+    },
+
+    "t7-threathunter": {
+      "description": "Threat hunting, IOC analysis, behavioral detection, and proactive threat identification",
+      "mode": "subagent",
+      "prompt": "{file:./agent/t7-threathunter.md}",
+      "temperature": 0.2,
+      "maxSteps": 50,
+      "tools": {
+        "write": false,
+        "edit": false,
+        "bash": true,
+        "read": true,
+        "glob": true,
+        "grep": true,
+        "list": true,
+        "webfetch": true
+      },
+      "permission": {
+        "bash": "allow",
+        "webfetch": "allow"
+      }
+    },
+
+    "t7-reviewer": {
+      "description": "Security-focused code review, vulnerability identification, and secure coding guidance",
+      "mode": "subagent",
+      "prompt": "{file:./agent/t7-reviewer.md}",
+      "temperature": 0.2,
+      "maxSteps": 30,
+      "tools": {
+        "write": false,
+        "edit": false,
+        "bash": true,
+        "read": true,
+        "glob": true,
+        "grep": true,
+        "list": true
+      },
+      "permission": {
+        "bash": "allow"
       }
     }
-  }
+  },
+  "mcp": {
+    "context7": {
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp",
+      "headers": {
+        "CONTEXT7_API_KEY": "{env:ctx7sk-2750220a-7487-4e9e-8cd3-433188ec5af5}"
+      }
+    }
+  },
+  "theme": "team7-catppuccin"
+  //"theme": "team7-tokyonight"
 }
