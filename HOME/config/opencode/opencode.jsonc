@@ -541,6 +541,97 @@
       "permission": {
         "bash": "allow"
       }
+    },
+
+    // ============================================================
+    // T7 SUB-AGENTS: Specialized Vulnerability Analysis & Exploitation
+    // ============================================================
+    "t7-code-review-agent": {
+      "description": "White-box security code analysis, attack surface mapping, and pre-engagement intelligence gathering",
+      "mode": "subagent",
+      "prompt": "{file:./agent/t7-code-review-agent.md}",
+      "temperature": 0.2,
+      "maxSteps": 50,
+      "tools": {
+        "write": true,
+        "edit": true,
+        "bash": true,
+        "read": true,
+        "glob": true,
+        "grep": true,
+        "list": true,
+        "task": true
+      },
+      "permission": {
+        "bash": "allow",
+        "edit": "allow"
+      }
+    },
+
+    "t7-xss-specialist": {
+      "description": "Cross-Site Scripting (XSS) vulnerability analysis and exploitation specialist",
+      "mode": "subagent",
+      "prompt": "{file:./agent/t7-xss-specialist.md}",
+      "temperature": 0.2,
+      "maxSteps": 50,
+      "tools": {
+        "write": true,
+        "edit": true,
+        "bash": true,
+        "read": true,
+        "glob": true,
+        "grep": true,
+        "list": true,
+        "task": true
+      },
+      "permission": {
+        "bash": "allow",
+        "edit": "allow"
+      }
+    },
+
+    "t7-injection-specialist": {
+      "description": "SQL Injection, Command Injection, LFI/RFI, SSTI, and Deserialization vulnerability analysis and exploitation",
+      "mode": "subagent",
+      "prompt": "{file:./agent/t7-injection-specialist.md}",
+      "temperature": 0.2,
+      "maxSteps": 50,
+      "tools": {
+        "write": true,
+        "edit": true,
+        "bash": true,
+        "read": true,
+        "glob": true,
+        "grep": true,
+        "list": true,
+        "task": true
+      },
+      "permission": {
+        "bash": "allow",
+        "edit": "allow"
+      }
+    },
+
+    "t7-ssrf-specialist": {
+      "description": "Server-Side Request Forgery (SSRF) vulnerability analysis and exploitation specialist",
+      "mode": "subagent",
+      "prompt": "{file:./agent/t7-ssrf-specialist.md}",
+      "temperature": 0.2,
+      "maxSteps": 50,
+      "tools": {
+        "write": true,
+        "edit": true,
+        "bash": true,
+        "read": true,
+        "glob": true,
+        "grep": true,
+        "list": true,
+        "task": true
+      },
+      "permission": {
+        "bash": "allow",
+        "edit": "allow"
+      }
     }
   },
   "mcp": {

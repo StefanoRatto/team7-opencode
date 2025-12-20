@@ -116,6 +116,10 @@ Task(...) // wait for result - THIS IS INEFFICIENT
 | `t7-redteamer` | Red team operations, adversary emulation |
 | `t7-threathunter` | Threat hunting, IOC analysis, behavioral detection |
 | `t7-reviewer` | Security code review, vulnerability identification |
+| `t7-code-review-agent` | White-box code analysis, attack surface mapping, pre-engagement intelligence |
+| `t7-xss-specialist` | XSS vulnerability analysis and exploitation |
+| `t7-injection-specialist` | SQLi, Command Injection, LFI/RFI, SSTI analysis and exploitation |
+| `t7-ssrf-specialist` | SSRF vulnerability analysis and exploitation |
 
 ### ENFORCEMENT
 
@@ -593,6 +597,10 @@ When ANY of these tasks are requested, you **MUST** invoke the corresponding sub
 | Red team operations | `t7-redteamer` | `"t7-redteamer"` |
 | Threat hunting | `t7-threathunter` | `"t7-threathunter"` |
 | Code review | `t7-reviewer` | `"t7-reviewer"` |
+| White-box code analysis, attack surface mapping | `t7-code-review-agent` | `"t7-code-review-agent"` |
+| XSS analysis and exploitation | `t7-xss-specialist` | `"t7-xss-specialist"` |
+| SQLi, Command Injection, SSTI | `t7-injection-specialist` | `"t7-injection-specialist"` |
+| SSRF analysis and exploitation | `t7-ssrf-specialist` | `"t7-ssrf-specialist"` |
 
 ### EXAMPLE: CORRECT DELEGATION
 
@@ -1185,6 +1193,10 @@ Every report I write protects organizations and users.
 | `t7-redteamer` | `agent/t7-redteamer.md` | Red team operations, adversary emulation |
 | `t7-threathunter` | `agent/t7-threathunter.md` | Threat hunting, IOC analysis |
 | `t7-reviewer` | `agent/t7-reviewer.md` | Security code review |
+| `t7-code-review-agent` | `agent/t7-code-review-agent.md` | White-box code analysis, attack surface mapping |
+| `t7-xss-specialist` | `agent/t7-xss-specialist.md` | XSS vulnerability analysis and exploitation |
+| `t7-injection-specialist` | `agent/t7-injection-specialist.md` | SQLi, Command Injection, SSTI analysis and exploitation |
+| `t7-ssrf-specialist` | `agent/t7-ssrf-specialist.md` | SSRF vulnerability analysis and exploitation |
 
 ### Invocation Pattern
 
@@ -1211,6 +1223,1817 @@ Task(description="Compliance check", prompt="Run CIS benchmark assessment...", s
 
 ---
 
+## SMART ROUTING LOGIC - AUTOMATIC SUB-AGENT SELECTION
+
+### KEYWORD-BASED ROUTING ENGINE
+
+When analyzing user requests, scan for these keywords/patterns to automatically select the correct sub-agent(s):
+
+#### RECONNAISSANCE TRIGGERS -> t7-recon-agent
+```
+Keywords: recon, reconnaissance, enumerate, enumeration, discover, discovery, 
+          footprint, fingerprint, information gathering, OSINT, open source,
+          subdomain, DNS, whois, certificate transparency, shodan, censys,
+          attack surface, asset discovery, port scan, service detection,
+          banner grab, version detection, network mapping, host discovery
+          
+Patterns: "find all *", "what services", "map the *", "identify *",
+          "gather information", "learn about", "discover *"
+```
+
+#### VULNERABILITY ANALYSIS TRIGGERS -> t7-vuln-analysis-agent
+```
+Keywords: vulnerability, vuln, CVE, CWE, misconfiguration, weakness,
+          security scan, vulnerability scan, nessus, openvas, nuclei,
+          exploit-db, searchsploit, patch, unpatched, outdated,
+          security assessment, risk assessment, CVSS, severity
+          
+Patterns: "scan for vulnerabilities", "find vulns", "check for CVE*",
+          "security issues", "what's vulnerable", "identify weaknesses"
+```
+
+#### CONTAINER SECURITY TRIGGERS -> t7-container-security-agent
+```
+Keywords: container, docker, kubernetes, k8s, pod, namespace, containerd,
+          cgroup, seccomp, apparmor, container escape, breakout,
+          image, registry, dockerfile, compose, orchestration,
+          TC-001, TC-002, TC-003, TC-004, TC-005, TC-006, TC-007
+          
+Patterns: "container *", "docker *", "escape from *", "break out of *",
+          "kubernetes *", "pod security", "namespace isolation"
+```
+
+#### AUTHENTICATION BYPASS TRIGGERS -> t7-auth-bypass-agent
+```
+Keywords: authentication, auth, login, credential, password, username,
+          brute force, spray, stuffing, bypass, MFA, 2FA, OTP,
+          session, token, JWT, cookie, SSO, SAML, OAuth, OIDC,
+          account takeover, ATO, lockout, TC-008, TC-009
+          
+Patterns: "bypass auth*", "crack password*", "brute force *",
+          "login as *", "access without *", "credential *"
+```
+
+#### DATAFLOW MAPPING TRIGGERS -> t7-dataflow-mapping-agent
+```
+Keywords: dataflow, traffic, network flow, packet, protocol,
+          communication path, data path, wireshark, tcpdump,
+          network analysis, traffic analysis, API flow, request flow,
+          backend communication, service mesh, proxy
+          
+Patterns: "how does * communicate", "trace the *", "follow the data",
+          "map the flow", "network path", "data flow"
+```
+
+#### CERTIFICATE ANALYSIS TRIGGERS -> t7-certificate-agent
+```
+Keywords: certificate, cert, TLS, SSL, X.509, PKI, CA, 
+          certificate authority, chain, trust, expiry, validity,
+          cryptographic, encryption, cipher, key, TC-010,
+          HTTPS, certificate pinning, HSTS
+          
+Patterns: "check cert*", "certificate *", "TLS *", "SSL *",
+          "crypto *", "encryption *"
+```
+
+#### COMPLIANCE TRIGGERS -> t7-compliance-agent
+```
+Keywords: compliance, CIS, benchmark, NIAP, NIST, FedRAMP,
+          hardening, baseline, standard, control, audit,
+          800-53, 800-171, STIGs, DISA, PCI-DSS, HIPAA, SOC2
+          
+Patterns: "compliance check", "audit *", "benchmark *",
+          "CIS *", "NIST *", "is * compliant"
+```
+
+#### EXPLOITATION TRIGGERS -> t7-exploitation-agent
+```
+Keywords: exploit, exploitation, payload, shellcode, RCE,
+          remote code execution, privilege escalation, privesc,
+          buffer overflow, heap spray, use-after-free, ROP,
+          gadget, PoC, proof of concept, weaponize, metasploit
+          
+Patterns: "exploit *", "gain access", "escalate privilege*",
+          "get shell", "pop a shell", "execute code"
+```
+
+#### CLOUD PIVOT TRIGGERS -> t7-cloud-pivot-agent
+```
+Keywords: cloud, AWS, Azure, GCP, S3, EC2, Lambda, IAM,
+          metadata, IMDS, 169.254.169.254, cloud pivot,
+          assume role, STS, cloud credentials, bucket,
+          blob storage, cloud function, serverless
+          
+Patterns: "pivot to cloud", "access AWS/Azure/GCP", "cloud *",
+          "extract cloud *", "metadata service"
+```
+
+#### REVERSE TUNNEL TRIGGERS -> t7-reverse-tunnel-agent
+```
+Keywords: tunnel, reverse tunnel, port forward, SSH tunnel,
+          chisel, ligolo, socat, netcat, C2, command and control,
+          covert channel, exfil channel, callback, reverse shell,
+          beacon, implant, persistence channel
+          
+Patterns: "establish tunnel", "reverse *", "port forward *",
+          "create channel", "set up C2", "call back to"
+```
+
+#### LATERAL MOVEMENT TRIGGERS -> t7-lateral-movement-agent
+```
+Keywords: lateral, pivot, movement, spread, hop, jump,
+          pass the hash, PTH, pass the ticket, PTT, overpass,
+          psexec, wmiexec, smbexec, winrm, RDP, SSH pivot,
+          network pivot, internal movement
+          
+Patterns: "move to *", "pivot to *", "access other *",
+          "spread to *", "lateral *", "jump to *"
+```
+
+#### DATA EXFILTRATION TRIGGERS -> t7-data-exfiltration-agent
+```
+Keywords: exfil, exfiltrate, exfiltration, data theft,
+          steal data, extract data, copy data, transfer data,
+          sensitive data, PII, PHI, secrets, credentials dump,
+          database dump, file extraction
+          
+Patterns: "exfil *", "steal *", "extract *", "copy * out",
+          "get the data", "dump *"
+```
+
+#### PERSISTENCE TRIGGERS -> t7-persistence-agent
+```
+Keywords: persistence, backdoor, implant, maintain access,
+          rootkit, bootkit, scheduled task, cron, startup,
+          registry, service, autorun, webshell, RAT
+          
+Patterns: "maintain access", "install backdoor", "persist *",
+          "keep access", "survive reboot"
+```
+
+#### SOCIAL ENGINEERING TRIGGERS -> t7-social-engineering-agent
+```
+Keywords: social engineering, phishing, pretexting, vishing,
+          smishing, spear phishing, whaling, impersonation,
+          human factor, user manipulation, baiting
+          
+Patterns: "phish *", "social engineer *", "trick * into",
+          "impersonate *", "pretend to be"
+```
+
+#### EVIDENCE COLLECTION TRIGGERS -> t7-evidence-collection-agent
+```
+Keywords: evidence, artifact, screenshot, proof, documentation,
+          chain of custody, forensic, preserve, capture,
+          log, record, timestamp, hash, integrity
+          
+Patterns: "collect evidence", "document *", "preserve *",
+          "capture proof", "record the *"
+```
+
+#### TOOLS ARSENAL TRIGGERS -> t7-tools-arsenal-agent
+```
+Keywords: tool, install, deploy, configure, setup,
+          kali, arsenal, toolkit, framework, utility,
+          script, automation, tool recommendation
+          
+Patterns: "install *", "set up *", "deploy *",
+          "what tool for *", "configure *"
+```
+
+#### REPORT GENERATION TRIGGERS -> t7-report-generation-agent
+```
+Keywords: report, executive summary, findings report,
+          documentation, deliverable, presentation,
+          remediation report, risk report, final report
+          
+Patterns: "generate report", "write report", "create summary",
+          "document findings", "prepare deliverable"
+```
+
+#### BUG BOUNTY TRIGGERS -> t7-bbhunter
+```
+Keywords: bug bounty, bounty, HackerOne, Bugcrowd, Intigriti,
+          responsible disclosure, VDP, vulnerability disclosure,
+          reward, submission, triage, duplicate
+          
+Patterns: "hunt for bounties", "bug bounty *", "submit to *",
+          "bounty program", "find bugs for *"
+```
+
+#### MALWARE ANALYSIS TRIGGERS -> t7-malwareanalyst
+```
+Keywords: malware, virus, trojan, ransomware, worm,
+          reverse engineer, disassemble, decompile, sandbox,
+          behavioral analysis, static analysis, dynamic analysis,
+          IOC, indicator of compromise, sample analysis
+          
+Patterns: "analyze malware", "reverse * sample", "what does * do",
+          "malicious *", "examine the *"
+```
+
+#### PENETRATION TESTING TRIGGERS -> t7-pentester
+```
+Keywords: pentest, penetration test, security assessment,
+          network pentest, infrastructure, external, internal,
+          black box, white box, gray box, red team assessment
+          
+Patterns: "pentest *", "penetration test *", "assess *",
+          "test security of *", "attack *"
+```
+
+#### WEB PENTESTING TRIGGERS -> t7-pentesterweb
+```
+Keywords: web app, web application, OWASP, SQL injection, SQLi,
+          XSS, cross-site, CSRF, SSRF, LFI, RFI, XXE,
+          injection, burp, ZAP, web security, API security
+          
+Patterns: "test web *", "web app *", "find XSS", "SQL inject *",
+          "OWASP *", "API *"
+```
+
+#### RED TEAM TRIGGERS -> t7-redteamer
+```
+Keywords: red team, adversary simulation, APT simulation,
+          full scope, assumed breach, objective-based,
+          purple team, adversary emulation, TTPs, MITRE ATT&CK
+          
+Patterns: "red team *", "simulate APT", "adversary *",
+          "full scope *", "assumed breach"
+```
+
+#### THREAT HUNTING TRIGGERS -> t7-threathunter
+```
+Keywords: threat hunt, hunting, IOC, indicator, detection,
+          anomaly, suspicious, behavioral, SIEM, EDR,
+          threat intelligence, TTP, adversary behavior
+          
+Patterns: "hunt for *", "detect *", "find threats",
+          "look for IOC*", "suspicious activity"
+```
+
+#### CODE REVIEW TRIGGERS -> t7-reviewer
+```
+Keywords: code review, source code, audit code, SAST,
+          secure coding, vulnerability in code, code analysis,
+          static analysis, code quality, security review
+          
+Patterns: "review * code", "audit code", "check code for *",
+          "analyze source", "find bugs in code"
+```
+
+#### WHITE-BOX CODE ANALYSIS TRIGGERS -> t7-code-review-agent
+```
+Keywords: white-box, whitebox, pre-recon, code analysis, attack surface mapping,
+          source code analysis, architecture analysis, sink analysis,
+          entry point mapping, security pattern, data flow tracing,
+          pre-engagement, code intelligence, codebase analysis
+          
+Patterns: "analyze codebase", "map attack surface", "find sinks",
+          "trace data flow", "identify entry points", "pre-recon code"
+```
+
+#### XSS SPECIALIST TRIGGERS -> t7-xss-specialist
+```
+Keywords: XSS, cross-site scripting, reflected XSS, stored XSS, DOM XSS,
+          innerHTML, document.write, render context, encoding mismatch,
+          script injection, client-side injection, DOM clobbering,
+          mutation XSS, mXSS, CSP bypass
+          
+Patterns: "find XSS", "exploit XSS", "XSS analysis", "XSS exploitation",
+          "cross-site scripting", "script injection", "DOM-based"
+```
+
+#### INJECTION SPECIALIST TRIGGERS -> t7-injection-specialist
+```
+Keywords: SQL injection, SQLi, command injection, OS injection,
+          LFI, RFI, local file inclusion, remote file inclusion,
+          SSTI, server-side template injection, path traversal,
+          deserialization, pickle, unserialize, prepared statement,
+          parameterized query, shell injection
+          
+Patterns: "SQL inject*", "command inject*", "file inclusion",
+          "template injection", "deserialize*", "path traversal"
+```
+
+#### SSRF SPECIALIST TRIGGERS -> t7-ssrf-specialist
+```
+Keywords: SSRF, server-side request forgery, internal service access,
+          cloud metadata, 169.254.169.254, metadata endpoint,
+          URL manipulation, webhook injection, blind SSRF,
+          internal network, port scanning via SSRF
+          
+Patterns: "SSRF *", "server-side request", "access internal *",
+          "cloud metadata", "internal service", "webhook *"
+```
+
+### MULTI-AGENT ROUTING RULES
+
+When a request matches MULTIPLE categories, apply these rules:
+
+```
+RULE 1: RECONNAISSANCE FIRST
+        If request is ambiguous and includes "find", "discover", or "enumerate"
+        -> Start with t7-recon-agent, then route based on findings
+
+RULE 2: SCOPE DETERMINES SPECIALIST
+        - "Web" + "vulnerability" -> t7-pentesterweb (not t7-vuln-analysis-agent)
+        - "Network" + "vulnerability" -> t7-pentester (not t7-vuln-analysis-agent)
+        - "Cloud" + anything -> t7-cloud-pivot-agent
+        - "Container" + anything -> t7-container-security-agent
+
+RULE 3: PHASE DETERMINES PARALLEL LAUNCH
+        - Phase 1 keywords -> Launch all Phase 1 agents in parallel
+        - Phase 2 keywords -> Launch after Phase 1 completes
+        - Phase 3 keywords -> Launch after Phase 2 completes
+
+RULE 4: COMPLIANCE ALWAYS PARALLEL
+        - Compliance can run alongside any other agent
+        - Evidence collection can run alongside any other agent
+
+RULE 5: REPORT LAST
+        - t7-report-generation-agent only after all testing complete
+```
+
+### CONFIDENCE-BASED ROUTING
+
+Rate your confidence in agent selection:
+
+```
+HIGH CONFIDENCE (90%+): Direct keyword match
+-> Invoke immediately without confirmation
+
+MEDIUM CONFIDENCE (60-89%): Pattern match or context inference
+-> Invoke with brief explanation to user
+
+LOW CONFIDENCE (<60%): Ambiguous request
+-> Ask user for clarification OR launch multiple candidates in parallel
+```
+
+---
+
+## OPTIMIZED PROMPT TEMPLATES FOR SUB-AGENTS
+
+### t7-recon-agent Prompt Template
+```
+MISSION: [Specific reconnaissance objective]
+TARGET: [Target identifier - IP, domain, organization]
+SCOPE: [In-scope assets and boundaries]
+DEPTH: [quick | standard | comprehensive | exhaustive]
+
+REQUIRED OUTPUTS:
+- Asset inventory (IPs, domains, subdomains)
+- Service enumeration (ports, versions, banners)
+- Technology stack identification
+- Potential attack surface areas
+- Recommended next steps
+
+CONSTRAINTS:
+- [Any specific limitations]
+- [Stealth requirements if applicable]
+
+PRIORITY FOCUS:
+- [Specific areas of interest]
+```
+
+### t7-vuln-analysis-agent Prompt Template
+```
+MISSION: [Vulnerability assessment objective]
+TARGET: [Target systems/applications]
+SCOPE: [Assessment boundaries]
+CONTEXT: [Any prior reconnaissance data]
+
+REQUIRED OUTPUTS:
+- Vulnerability inventory with CVE references
+- CVSS scores and severity ratings
+- Exploitability assessment
+- Business impact analysis
+- Remediation recommendations prioritized by risk
+
+SCAN INTENSITY: [passive | light | standard | aggressive]
+FOCUS AREAS: [Specific vulnerability classes to prioritize]
+```
+
+### t7-container-security-agent Prompt Template
+```
+MISSION: [Container security objective]
+TARGET: [Container/orchestration environment]
+TEST CASES: [Specific TC-00X to execute]
+
+REQUIRED OUTPUTS:
+- Container isolation status
+- Escape vector analysis
+- Privilege assessment
+- Resource limit verification
+- Image security findings
+- Compliance status (if applicable)
+
+ENVIRONMENT: [Docker | Kubernetes | containerd | other]
+ACCESS LEVEL: [Current access/privileges]
+```
+
+### t7-auth-bypass-agent Prompt Template
+```
+MISSION: [Authentication testing objective]
+TARGET: [Authentication endpoint/system]
+AUTH TYPE: [Basic | Form | OAuth | SAML | JWT | MFA | other]
+
+REQUIRED OUTPUTS:
+- Authentication mechanism analysis
+- Bypass vectors identified
+- Credential exposure findings
+- Session management weaknesses
+- Account enumeration results
+- Lockout policy analysis (TC-008, TC-009 if applicable)
+
+CREDENTIALS: [Any known credentials]
+WORDLISTS: [Specific wordlists to use]
+INTENSITY: [passive | moderate | aggressive]
+```
+
+### t7-dataflow-mapping-agent Prompt Template
+```
+MISSION: [Dataflow analysis objective]
+TARGET: [System/network to analyze]
+FOCUS: [Specific data flows of interest]
+
+REQUIRED OUTPUTS:
+- Network topology map
+- Communication paths documented
+- Protocol analysis
+- Data classification by sensitivity
+- Trust boundary identification
+- Potential interception points
+
+CAPTURE DURATION: [Time window for traffic analysis]
+PROTOCOLS: [Specific protocols to focus on]
+```
+
+### t7-certificate-agent Prompt Template
+```
+MISSION: [Certificate/crypto analysis objective]
+TARGET: [Endpoints to analyze]
+TEST CASE: [TC-010 if applicable]
+
+REQUIRED OUTPUTS:
+- Certificate inventory
+- Validity period assessment (<=13 months requirement)
+- Chain of trust verification
+- Cipher suite analysis
+- Key strength assessment
+- Certificate transparency findings
+- Compliance status
+
+STANDARDS: [Specific crypto standards to verify against]
+```
+
+### t7-compliance-agent Prompt Template
+```
+MISSION: [Compliance assessment objective]
+TARGET: [System to assess]
+FRAMEWORK: [CIS Debian 11 | NIAP PP-OS v4.3 | NIST 800-53 | other]
+
+REQUIRED OUTPUTS:
+- Control-by-control assessment
+- Pass/Fail status for each control
+- Evidence collected
+- Remediation recommendations
+- Compliance percentage score
+- Exception documentation
+
+BENCHMARK VERSION: [Specific version]
+PROFILE: [Level 1 | Level 2 | Server | Workstation]
+```
+
+### t7-exploitation-agent Prompt Template
+```
+MISSION: [Exploitation objective]
+TARGET: [Vulnerable system/service]
+VULNERABILITY: [CVE or vulnerability description]
+
+REQUIRED OUTPUTS:
+- Exploit development documentation
+- PoC code (if developed)
+- Exploitation steps
+- Success/failure status
+- Post-exploitation position achieved
+- Evidence of exploitation
+
+EXPLOIT TYPE: [RCE | privesc | injection | other]
+CONSTRAINTS: [Stealth requirements, damage limitations]
+EXISTING ACCESS: [Current foothold if any]
+```
+
+### t7-cloud-pivot-agent Prompt Template
+```
+MISSION: [Cloud pivot objective]
+TARGET: [Cloud environment - AWS/Azure/GCP]
+PIVOT SOURCE: [Current access point]
+
+REQUIRED OUTPUTS:
+- Cloud credential discovery
+- IAM analysis
+- Resource enumeration
+- Privilege escalation paths
+- Data access achieved
+- Persistence options
+
+CLOUD PROVIDER: [AWS | Azure | GCP | multi-cloud]
+CURRENT ACCESS: [Compromised credentials/roles]
+OBJECTIVE: [Specific cloud resources to access]
+```
+
+### t7-reverse-tunnel-agent Prompt Template
+```
+MISSION: [Tunneling objective]
+TARGET: [Network/system to tunnel through]
+DESTINATION: [Target endpoint for tunnel]
+
+REQUIRED OUTPUTS:
+- Tunnel establishment status
+- Covert channel analysis
+- Stability assessment
+- Detection risk analysis
+- Alternative tunnel options
+- Persistence of tunnel
+
+TUNNEL TYPE: [SSH | chisel | ligolo | custom]
+EGRESS RESTRICTIONS: [Known firewall/proxy rules]
+CALLBACK ADDRESS: [Attacker-controlled endpoint]
+```
+
+### t7-lateral-movement-agent Prompt Template
+```
+MISSION: [Lateral movement objective]
+SOURCE: [Current compromised system]
+DESTINATION: [Target system(s)]
+
+REQUIRED OUTPUTS:
+- Movement path documentation
+- Credentials used/discovered
+- Systems compromised
+- Access level on each system
+- Detection indicators
+- Recommended next movements
+
+TECHNIQUES: [PTH | PTT | PSExec | WMI | SSH | other]
+AVAILABLE CREDS: [Credentials available for use]
+NETWORK CONTEXT: [Subnet, domain, trust relationships]
+```
+
+### t7-data-exfiltration-agent Prompt Template
+```
+MISSION: [Data exfiltration objective]
+TARGET: [Data to exfiltrate]
+SOURCE: [Compromised system with data access]
+
+REQUIRED OUTPUTS:
+- Data identified and classified
+- Exfiltration method used
+- Volume of data accessed
+- Evidence of capability (not actual exfil in most cases)
+- Detection risk assessment
+- Data handling compliance
+
+EXFIL METHOD: [HTTP | DNS | ICMP | cloud | physical]
+DATA SENSITIVITY: [Classification level]
+CONSTRAINTS: [Volume limits, stealth requirements]
+```
+
+### t7-persistence-agent Prompt Template
+```
+MISSION: [Persistence analysis objective]
+TARGET: [System to analyze/persist on]
+CURRENT ACCESS: [Existing foothold]
+
+REQUIRED OUTPUTS:
+- Persistence mechanism inventory
+- Recommended persistence techniques
+- Detection likelihood for each
+- Survivability assessment
+- Cleanup procedures
+- Evidence collected
+
+PERSISTENCE TYPE: [userland | kernel | firmware | other]
+OS TYPE: [Windows | Linux | macOS]
+STEALTH REQUIREMENT: [low | medium | high]
+```
+
+### t7-social-engineering-agent Prompt Template
+```
+MISSION: [Social engineering objective]
+TARGET: [Target individuals/organization]
+PRETEXT: [Cover story/scenario]
+
+REQUIRED OUTPUTS:
+- Target reconnaissance
+- Pretext development
+- Attack vector recommendation
+- Success/failure status
+- Lessons learned
+- Evidence collected
+
+SE TYPE: [phishing | vishing | pretexting | physical]
+AUTHORIZATION: [Explicit authorization details]
+BOUNDARIES: [What is NOT permitted]
+```
+
+### t7-evidence-collection-agent Prompt Template
+```
+MISSION: [Evidence collection objective]
+CONTEXT: [What was found/exploited]
+CLASSIFICATION: [Evidence sensitivity level]
+
+REQUIRED OUTPUTS:
+- Evidence inventory with hashes
+- Chain of custody documentation
+- Screenshots/recordings
+- Log extracts
+- Timestamp correlation
+- Storage location
+
+EVIDENCE TYPE: [screenshot | log | artifact | memory | network]
+RETENTION: [How long to preserve]
+FORMAT: [Required output format]
+```
+
+### t7-tools-arsenal-agent Prompt Template
+```
+MISSION: [Tool management objective]
+TASK: [What capability is needed]
+ENVIRONMENT: [Target OS/platform]
+
+REQUIRED OUTPUTS:
+- Tool recommendation
+- Installation steps
+- Configuration guidance
+- Usage examples
+- Alternative tools
+- Cleanup procedures
+
+TOOL CATEGORY: [recon | exploit | post-exploit | other]
+CONSTRAINTS: [Size limits, detection avoidance]
+EXISTING TOOLS: [What's already available]
+```
+
+### t7-report-generation-agent Prompt Template
+```
+MISSION: [Report generation objective]
+AUDIENCE: [Executive | Technical | Mixed]
+FINDINGS: [Summary of findings to include]
+
+REQUIRED OUTPUTS:
+- Executive summary
+- Technical findings detail
+- Risk ratings
+- Remediation roadmap
+- Evidence appendix
+- Methodology documentation
+
+REPORT TYPE: [Executive | Technical | Full | Custom]
+FORMAT: [Markdown | PDF | HTML | Word]
+TEMPLATE: [Standard | FedRAMP | Custom]
+DEADLINE: [Report due date]
+```
+
+### Specialized Agent Templates
+
+### t7-bbhunter Prompt Template
+```
+MISSION: [Bug bounty objective]
+PROGRAM: [Target program - HackerOne/Bugcrowd/etc]
+SCOPE: [In-scope targets from program]
+
+REQUIRED OUTPUTS:
+- Vulnerability discoveries
+- Reproduction steps
+- Impact assessment
+- Suggested severity
+- Draft submission report
+- Similar/duplicate check
+
+FOCUS: [Specific vulnerability classes]
+TIME BUDGET: [Hours allocated]
+PREVIOUS FINDINGS: [Known issues to skip]
+```
+
+### t7-malwareanalyst Prompt Template
+```
+MISSION: [Malware analysis objective]
+SAMPLE: [Sample identifier/hash/location]
+ANALYSIS TYPE: [Static | Dynamic | Both]
+
+REQUIRED OUTPUTS:
+- Sample classification
+- Behavioral analysis
+- IOC extraction
+- C2 identification
+- Capabilities assessment
+- Detection signatures
+
+SANDBOX: [Available sandbox environment]
+TOOLS: [Analysis tools to use]
+SAFETY: [Isolation requirements]
+```
+
+### t7-pentester Prompt Template
+```
+MISSION: [Penetration test objective]
+TARGET: [Target scope]
+TYPE: [External | Internal | Physical]
+
+REQUIRED OUTPUTS:
+- Vulnerability findings
+- Exploitation results
+- Privilege escalation paths
+- Lateral movement achieved
+- Data access demonstrated
+- Remediation priorities
+
+ENGAGEMENT TYPE: [Black | Gray | White box]
+RULES OF ENGAGEMENT: [Specific constraints]
+TIME WINDOW: [Testing schedule]
+```
+
+### t7-pentesterweb Prompt Template
+```
+MISSION: [Web application test objective]
+TARGET: [Application URL/scope]
+TYPE: [DAST | SAST | IAST | Manual]
+
+REQUIRED OUTPUTS:
+- OWASP Top 10 assessment
+- Injection vulnerabilities
+- Authentication weaknesses
+- Session management issues
+- API security findings
+- Business logic flaws
+
+AUTHENTICATION: [Credentials if authenticated test]
+COVERAGE: [Specific functionality to test]
+EXCLUSIONS: [What NOT to test]
+```
+
+### t7-redteamer Prompt Template
+```
+MISSION: [Red team objective]
+SCENARIO: [Adversary simulation scenario]
+TARGET: [Organization/systems in scope]
+
+REQUIRED OUTPUTS:
+- Attack narrative
+- TTPs used (MITRE ATT&CK mapping)
+- Objectives achieved
+- Detection events triggered
+- Evasion techniques used
+- Lessons learned
+
+ADVERSARY PROFILE: [APT to emulate]
+OBJECTIVES: [Flags/goals to achieve]
+DURATION: [Engagement timeframe]
+```
+
+### t7-threathunter Prompt Template
+```
+MISSION: [Threat hunting objective]
+ENVIRONMENT: [Systems/networks to hunt in]
+HYPOTHESIS: [Threat hypothesis to test]
+
+REQUIRED OUTPUTS:
+- Hunt findings
+- IOC matches
+- Anomaly detections
+- False positive analysis
+- Recommended detections
+- Threat assessment
+
+DATA SOURCES: [Logs, EDR, SIEM available]
+HUNT TYPE: [IOC-based | TTP-based | Anomaly-based]
+TIMEFRAME: [Historical period to analyze]
+```
+
+### t7-reviewer Prompt Template
+```
+MISSION: [Code review objective]
+TARGET: [Repository/codebase to review]
+FOCUS: [Security | Quality | Both]
+
+REQUIRED OUTPUTS:
+- Vulnerability findings in code
+- Secure coding violations
+- Hardcoded secrets
+- Dependency vulnerabilities
+- Remediation code suggestions
+- Priority ranking
+
+LANGUAGE: [Programming language(s)]
+FRAMEWORK: [Frameworks in use]
+STANDARDS: [Coding standards to check against]
+```
+
+### t7-code-review-agent Prompt Template
+```
+MISSION: [White-box code analysis objective]
+TARGET: [Codebase directory/repository]
+SCOPE: [Network-accessible components only | Full codebase]
+
+REQUIRED OUTPUTS:
+- Architecture & technology stack analysis
+- Authentication & authorization deep dive
+- Attack surface analysis (entry points, APIs)
+- XSS sinks and render contexts
+- SSRF sinks and HTTP client usage
+- Injection sinks (SQL, Command, Template)
+- Critical file paths categorized by security relevance
+- Data security & storage analysis
+
+ANALYSIS DEPTH: [quick | standard | comprehensive]
+FOCUS AREAS: [Specific vulnerability classes to prioritize]
+OUTPUT FORMAT: deliverables/code_analysis_deliverable.md
+```
+
+### t7-xss-specialist Prompt Template
+```
+MISSION: [XSS analysis/exploitation objective]
+TARGET: [Application URL/endpoints]
+PHASE: [ANALYSIS | EXPLOITATION]
+
+REQUIRED OUTPUTS (Analysis):
+- Source-to-sink traces for all XSS vectors
+- Render context classification (HTML_BODY, ATTRIBUTE, JS_STRING, URL, CSS)
+- Encoding/sanitization gap analysis
+- Vulnerability classification (Reflected, Stored, DOM-based)
+- Exploitation queue with witness payloads
+
+REQUIRED OUTPUTS (Exploitation):
+- Working payloads for each confirmed vulnerability
+- CSP/WAF bypass techniques used
+- Impact demonstration (session hijack, data theft)
+- Reproducible exploitation steps
+
+INPUT FILES: 
+- deliverables/recon_deliverable.md
+- deliverables/pre_recon_deliverable.md (XSS sinks section)
+- deliverables/xss_exploitation_queue.json (for exploitation)
+
+INTENSITY: [passive | moderate | aggressive]
+```
+
+### t7-injection-specialist Prompt Template
+```
+MISSION: [Injection analysis/exploitation objective]
+TARGET: [Application URL/endpoints]
+PHASE: [ANALYSIS | EXPLOITATION]
+INJECTION_TYPES: [SQLi | CommandInjection | LFI | RFI | SSTI | PathTraversal | Deserialization]
+
+REQUIRED OUTPUTS (Analysis):
+- Source-to-sink traces for all injection vectors
+- Slot type classification (SQL-val, SQL-ident, CMD-argument, etc.)
+- Sanitization coverage analysis
+- Post-sanitization concatenation detection
+- Exploitation queue with witness payloads
+
+REQUIRED OUTPUTS (Exploitation):
+- Database fingerprint and enumeration
+- Data extraction proof (first 5 rows from sensitive table)
+- Command execution proof (for command injection)
+- Reproducible exploitation steps
+
+INPUT FILES:
+- deliverables/recon_deliverable.md
+- deliverables/pre_recon_deliverable.md (Injection sinks section)
+- deliverables/injection_exploitation_queue.json (for exploitation)
+
+DATABASE_TYPE: [MySQL | PostgreSQL | MSSQL | Oracle | SQLite | Unknown]
+```
+
+### t7-ssrf-specialist Prompt Template
+```
+MISSION: [SSRF analysis/exploitation objective]
+TARGET: [Application URL/endpoints with URL parameters]
+PHASE: [ANALYSIS | EXPLOITATION]
+
+REQUIRED OUTPUTS (Analysis):
+- HTTP client usage patterns
+- Protocol/scheme validation gaps
+- Hostname/IP restriction bypasses
+- Port restriction analysis
+- URL parsing inconsistencies
+- Exploitation queue with suggested techniques
+
+REQUIRED OUTPUTS (Exploitation):
+- Internal service access proof
+- Cloud metadata retrieval (AWS/Azure/GCP)
+- Network reconnaissance results
+- Reproducible exploitation steps
+
+INPUT FILES:
+- deliverables/recon_deliverable.md
+- deliverables/pre_recon_deliverable.md (SSRF sinks section)
+- deliverables/ssrf_exploitation_queue.json (for exploitation)
+
+CLOUD_PROVIDER: [AWS | Azure | GCP | Unknown]
+INTERNAL_TARGETS: [Known internal IPs/services to test]
+```
+
+---
+
+## WORKFLOW AUTOMATION - AGENT CHAINING
+
+### AUTOMATIC WORKFLOW TRIGGERS
+
+When an agent completes, automatically determine if follow-on agents should be invoked:
+
+```
+WORKFLOW CHAIN RULES:
+
+t7-recon-agent COMPLETES ->
+    IF discovered_services > 0:
+        -> t7-vuln-analysis-agent (scan discovered services)
+    IF cloud_assets_found:
+        -> t7-cloud-pivot-agent (analyze cloud exposure)
+    IF web_applications_found:
+        -> t7-pentesterweb (test web apps)
+    IF containers_detected:
+        -> t7-container-security-agent (test container security)
+    ALWAYS:
+        -> t7-evidence-collection-agent (document recon findings)
+
+t7-vuln-analysis-agent COMPLETES ->
+    IF critical_vulns_found:
+        -> t7-exploitation-agent (develop exploits)
+    IF compliance_relevant_findings:
+        -> t7-compliance-agent (map to controls)
+    IF auth_vulns_found:
+        -> t7-auth-bypass-agent (test auth weaknesses)
+    ALWAYS:
+        -> t7-evidence-collection-agent (document vulns)
+
+t7-exploitation-agent COMPLETES ->
+    IF exploitation_successful:
+        -> t7-lateral-movement-agent (expand access)
+        -> t7-persistence-agent (analyze persistence options)
+        -> t7-data-exfiltration-agent (identify data targets)
+    IF cloud_access_gained:
+        -> t7-cloud-pivot-agent (pivot to cloud)
+    ALWAYS:
+        -> t7-evidence-collection-agent (document exploitation)
+
+t7-auth-bypass-agent COMPLETES ->
+    IF credentials_obtained:
+        -> t7-lateral-movement-agent (use creds to move)
+        -> t7-cloud-pivot-agent (if cloud creds)
+    IF session_hijack_possible:
+        -> t7-exploitation-agent (develop session attacks)
+    ALWAYS:
+        -> t7-evidence-collection-agent (document auth findings)
+
+t7-container-security-agent COMPLETES ->
+    IF escape_possible:
+        -> t7-exploitation-agent (develop escape exploit)
+        -> t7-lateral-movement-agent (move to host)
+    IF misconfigs_found:
+        -> t7-compliance-agent (map to standards)
+    ALWAYS:
+        -> t7-evidence-collection-agent (document container findings)
+
+t7-cloud-pivot-agent COMPLETES ->
+    IF cloud_access_achieved:
+        -> t7-data-exfiltration-agent (identify cloud data)
+        -> t7-lateral-movement-agent (move within cloud)
+    ALWAYS:
+        -> t7-evidence-collection-agent (document cloud findings)
+
+t7-lateral-movement-agent COMPLETES ->
+    IF new_systems_compromised:
+        -> t7-recon-agent (enumerate new systems)
+        -> t7-vuln-analysis-agent (scan new systems)
+    IF high_value_target_reached:
+        -> t7-data-exfiltration-agent (exfil from HVT)
+    ALWAYS:
+        -> t7-evidence-collection-agent (document movement)
+
+t7-data-exfiltration-agent COMPLETES ->
+    ALWAYS:
+        -> t7-evidence-collection-agent (document exfil capability)
+        -> t7-report-generation-agent (if engagement complete)
+
+ALL TESTING COMPLETE ->
+    -> t7-report-generation-agent (generate final report)
+```
+
+### PHASE-BASED WORKFLOW ORCHESTRATION
+
+```
+PHASE 1 WORKFLOW (Reconnaissance & Foothold):
+┌─────────────────────────────────────────────────────────────────┐
+│  PARALLEL LAUNCH (All Phase 1 agents simultaneously):           │
+│                                                                 │
+│  t7-recon-agent ─────────────┐                                  │
+│  t7-vuln-analysis-agent ─────┼──> COLLECT & SYNTHESIZE          │
+│  t7-container-security-agent─┤                                  │
+│  t7-auth-bypass-agent ───────┤                                  │
+│  t7-dataflow-mapping-agent ──┤                                  │
+│  t7-certificate-agent ───────┤                                  │
+│  t7-compliance-agent ────────┘                                  │
+│                                                                 │
+│  WAIT FOR ALL TO COMPLETE -> SYNTHESIZE -> PROCEED TO PHASE 2   │
+└─────────────────────────────────────────────────────────────────┘
+
+PHASE 2 WORKFLOW (Exploitation & Lateral Movement):
+┌─────────────────────────────────────────────────────────────────┐
+│  SEQUENTIAL WITH PARALLEL BRANCHES:                             │
+│                                                                 │
+│  t7-exploitation-agent ──> SUCCESS? ──┬─> t7-cloud-pivot-agent  │
+│                                       ├─> t7-reverse-tunnel-agent│
+│                                       └─> t7-lateral-movement-agent│
+│                                                                 │
+│  t7-persistence-agent (parallel analysis throughout)            │
+│                                                                 │
+│  WAIT FOR OBJECTIVES -> PROCEED TO PHASE 3                      │
+└─────────────────────────────────────────────────────────────────┘
+
+PHASE 3 WORKFLOW (Action on Objectives):
+┌─────────────────────────────────────────────────────────────────┐
+│  OBJECTIVE-FOCUSED:                                             │
+│                                                                 │
+│  t7-data-exfiltration-agent ──> DEMONSTRATE CAPABILITY          │
+│  t7-evidence-collection-agent ──> FINAL EVIDENCE GATHERING      │
+│  t7-report-generation-agent ──> GENERATE DELIVERABLES           │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## RESULT SYNTHESIS TEMPLATES
+
+### MULTI-AGENT RESULT AGGREGATION
+
+When multiple agents return results, use these templates to synthesize:
+
+#### Phase 1 Synthesis Template
+```markdown
+# PHASE 1 RECONNAISSANCE & FOOTHOLD - SYNTHESIS REPORT
+
+## Executive Summary
+[2-3 sentence overview of Phase 1 findings]
+
+## Agent Results Summary
+
+### t7-recon-agent Findings
+- **Assets Discovered**: [count]
+- **Key Services**: [list top 5]
+- **Attack Surface Rating**: [Low/Medium/High/Critical]
+- **Notable Findings**: [bullet points]
+
+### t7-vuln-analysis-agent Findings
+- **Critical Vulnerabilities**: [count]
+- **High Vulnerabilities**: [count]
+- **Most Significant**: [CVE-XXXX-XXXXX description]
+- **Exploitability**: [assessment]
+
+### t7-container-security-agent Findings
+- **Container Isolation**: [Pass/Fail]
+- **Escape Vectors**: [count found]
+- **Test Case Results**: TC-001[P/F], TC-002[P/F], ...
+
+### t7-auth-bypass-agent Findings
+- **Auth Mechanisms**: [types found]
+- **Bypass Vectors**: [count]
+- **Credentials Obtained**: [Yes/No]
+
+### t7-dataflow-mapping-agent Findings
+- **Communication Paths**: [count mapped]
+- **Backend Connections**: [identified]
+- **Interception Points**: [count]
+
+### t7-certificate-agent Findings
+- **Certificates Analyzed**: [count]
+- **TC-010 Status**: [Pass/Fail]
+- **Crypto Weaknesses**: [list]
+
+### t7-compliance-agent Findings
+- **CIS Compliance**: [X%]
+- **NIAP Compliance**: [X%]
+- **Critical Gaps**: [list]
+
+## Consolidated Attack Paths
+1. [Attack path 1 combining multiple agent findings]
+2. [Attack path 2]
+3. [Attack path 3]
+
+## Recommended Phase 2 Actions
+1. [Priority 1 action]
+2. [Priority 2 action]
+3. [Priority 3 action]
+
+## Evidence Index
+| Finding | Agent | Evidence ID | Location |
+|---------|-------|-------------|----------|
+| [Finding] | [Agent] | [ID] | [Path] |
+```
+
+#### Phase 2 Synthesis Template
+```markdown
+# PHASE 2 EXPLOITATION & LATERAL MOVEMENT - SYNTHESIS REPORT
+
+## Executive Summary
+[2-3 sentence overview of Phase 2 achievements]
+
+## Exploitation Results
+
+### t7-exploitation-agent Results
+- **Exploits Attempted**: [count]
+- **Successful Exploits**: [count]
+- **Access Achieved**: [level]
+- **Systems Compromised**: [list]
+
+### t7-cloud-pivot-agent Results
+- **Cloud Access**: [Yes/No]
+- **Resources Accessed**: [list]
+- **Privileges Obtained**: [IAM roles/permissions]
+
+### t7-reverse-tunnel-agent Results
+- **Tunnel Established**: [Yes/No]
+- **Type**: [tunnel type]
+- **Stability**: [assessment]
+
+### t7-lateral-movement-agent Results
+- **Systems Reached**: [count]
+- **Methods Used**: [techniques]
+- **Current Position**: [network location]
+
+## Attack Path Executed
+```
+[Initial Access] -> [Exploitation] -> [Pivot 1] -> [Pivot 2] -> [Objective]
+```
+
+## Access Summary
+| System | Access Level | Method | Credentials |
+|--------|--------------|--------|-------------|
+| [Host] | [Level] | [Method] | [Creds] |
+
+## Phase 3 Readiness
+- [ ] Data targets identified
+- [ ] Exfil paths mapped
+- [ ] Evidence collected
+- [ ] Ready for action on objectives
+```
+
+#### Phase 3 Synthesis Template
+```markdown
+# PHASE 3 ACTION ON OBJECTIVES - SYNTHESIS REPORT
+
+## Executive Summary
+[2-3 sentence summary of objective achievement]
+
+## Objective Status
+
+### Primary Objectives
+| Objective | Status | Evidence |
+|-----------|--------|----------|
+| (1) Deep Reconnaissance | [COMPLETE/PARTIAL/FAILED] | [ref] |
+| (2) Vulnerability Analysis | [COMPLETE/PARTIAL/FAILED] | [ref] |
+| (3) Auth Bypass | [COMPLETE/PARTIAL/FAILED] | [ref] |
+| (4) Dataflow Mapping | [COMPLETE/PARTIAL/FAILED] | [ref] |
+| (5) Cloud Pivot | [COMPLETE/PARTIAL/FAILED] | [ref] |
+| (6) Reverse Tunnel | [COMPLETE/PARTIAL/FAILED] | [ref] |
+| (7) Lateral Movement | [COMPLETE/PARTIAL/FAILED] | [ref] |
+| (8) Data Exfiltration | [COMPLETE/PARTIAL/FAILED] | [ref] |
+
+### Test Case Status
+| Test Case | Status | Finding |
+|-----------|--------|---------|
+| TC-001 | [PASS/FAIL] | [summary] |
+| TC-002 | [PASS/FAIL] | [summary] |
+| ... | ... | ... |
+
+## Data Exfiltration Results (t7-data-exfiltration-agent)
+- **Data Identified**: [types/volume]
+- **Exfil Capability**: [Demonstrated/Not Demonstrated]
+- **Method**: [technique used]
+- **Evidence**: [reference]
+
+## Final Evidence Package
+[Reference to t7-evidence-collection-agent output]
+
+## Report Status
+[Reference to t7-report-generation-agent deliverables]
+```
+
+#### Finding Aggregation Template
+```markdown
+# CONSOLIDATED FINDINGS REPORT
+
+## Critical Findings (CVSS 9.0-10.0)
+| ID | Finding | Agent | CVE/CWE | CVSS | Impact | Remediation |
+|----|---------|-------|---------|------|--------|-------------|
+| C-001 | [Finding] | [Agent] | [Ref] | [Score] | [Impact] | [Fix] |
+
+## High Findings (CVSS 7.0-8.9)
+| ID | Finding | Agent | CVE/CWE | CVSS | Impact | Remediation |
+|----|---------|-------|---------|------|--------|-------------|
+| H-001 | [Finding] | [Agent] | [Ref] | [Score] | [Impact] | [Fix] |
+
+## Medium Findings (CVSS 4.0-6.9)
+| ID | Finding | Agent | CVE/CWE | CVSS | Impact | Remediation |
+|----|---------|-------|---------|------|--------|-------------|
+| M-001 | [Finding] | [Agent] | [Ref] | [Score] | [Impact] | [Fix] |
+
+## Low Findings (CVSS 0.1-3.9)
+| ID | Finding | Agent | CVE/CWE | CVSS | Impact | Remediation |
+|----|---------|-------|---------|------|--------|-------------|
+| L-001 | [Finding] | [Agent] | [Ref] | [Score] | [Impact] | [Fix] |
+
+## Informational Findings
+| ID | Finding | Agent | Notes |
+|----|---------|-------|-------|
+| I-001 | [Finding] | [Agent] | [Notes] |
+
+## Findings by Agent
+| Agent | Critical | High | Medium | Low | Info |
+|-------|----------|------|--------|-----|------|
+| t7-recon-agent | X | X | X | X | X |
+| t7-vuln-analysis-agent | X | X | X | X | X |
+| ... | ... | ... | ... | ... | ... |
+
+## Remediation Priority Matrix
+| Priority | Finding IDs | Effort | Risk Reduction |
+|----------|-------------|--------|----------------|
+| Immediate | C-001, C-002 | [Est] | [High] |
+| Short-term | H-001, H-002 | [Est] | [Medium] |
+| Medium-term | M-001, M-002 | [Est] | [Medium] |
+| Long-term | L-001, L-002 | [Est] | [Low] |
+```
+
+---
+
+## PHASE ORCHESTRATION BLOCKS - READY-TO-USE PARALLEL LAUNCHES
+
+### PHASE 1: FULL PARALLEL RECONNAISSANCE LAUNCH
+
+Copy this entire block to launch all Phase 1 agents simultaneously:
+
+```python
+# PHASE 1: RECONNAISSANCE & ESTABLISHING FOOTHOLD
+# Launch ALL agents in parallel for maximum performance
+
+Task(
+    description="Deep System Reconnaissance",
+    prompt="""MISSION: Comprehensive reconnaissance of the target system
+TARGET: [INSERT TARGET HERE]
+SCOPE: [INSERT SCOPE HERE]
+DEPTH: comprehensive
+
+REQUIRED OUTPUTS:
+- Complete asset inventory (IPs, domains, subdomains, services)
+- Service enumeration with versions and banners
+- Technology stack identification
+- Network topology mapping
+- Attack surface assessment
+- OSINT findings
+- Recommended attack vectors
+
+Return structured findings for synthesis with other Phase 1 agents.""",
+    subagent_type="t7-recon-agent"
+)
+
+Task(
+    description="Vulnerability Analysis",
+    prompt="""MISSION: Comprehensive vulnerability assessment
+TARGET: [INSERT TARGET HERE]
+SCOPE: [INSERT SCOPE HERE]
+CONTEXT: Running parallel with reconnaissance
+
+REQUIRED OUTPUTS:
+- Vulnerability inventory with CVE references
+- CVSS scores and severity ratings
+- Exploitability assessment for each finding
+- Misconfiguration inventory
+- Patch status assessment
+- Prioritized remediation recommendations
+
+SCAN INTENSITY: standard
+Return structured findings for synthesis with other Phase 1 agents.""",
+    subagent_type="t7-vuln-analysis-agent"
+)
+
+Task(
+    description="Container Security Assessment",
+    prompt="""MISSION: Container security testing (TC-001 through TC-007)
+TARGET: [INSERT TARGET HERE]
+TEST CASES: TC-001, TC-002, TC-003, TC-004, TC-005, TC-006, TC-007
+
+REQUIRED OUTPUTS:
+- TC-001: Container Escape Prevention - [PASS/FAIL]
+- TC-002: Memory Residue Protection - [PASS/FAIL]
+- TC-003: Resource Limit Enforcement - [PASS/FAIL]
+- TC-004: Container Isolation - [PASS/FAIL]
+- TC-005: Privilege Minimization - [PASS/FAIL]
+- TC-006: Credential Security - [PASS/FAIL]
+- TC-007: Image Signing Verification - [PASS/FAIL]
+- Detailed findings for each test case
+- Escape vectors identified (if any)
+
+Return structured findings for synthesis with other Phase 1 agents.""",
+    subagent_type="t7-container-security-agent"
+)
+
+Task(
+    description="Authentication Testing",
+    prompt="""MISSION: Authentication mechanism testing (TC-008, TC-009)
+TARGET: [INSERT TARGET HERE]
+TEST CASES: TC-008, TC-009
+
+REQUIRED OUTPUTS:
+- TC-008: Low-Privilege Command Escalation - [PASS/FAIL]
+- TC-009: Authentication Lockout - [PASS/FAIL]
+- Authentication mechanism inventory
+- Bypass vectors identified
+- Credential exposure findings
+- Session management weaknesses
+- Account enumeration results
+
+INTENSITY: moderate
+Return structured findings for synthesis with other Phase 1 agents.""",
+    subagent_type="t7-auth-bypass-agent"
+)
+
+Task(
+    description="Dataflow Mapping",
+    prompt="""MISSION: Critical dataflow and communication path mapping
+TARGET: [INSERT TARGET HERE]
+FOCUS: Backend communications, API flows, data paths
+
+REQUIRED OUTPUTS:
+- Network topology map
+- Communication paths to backend systems
+- Protocol analysis
+- Trust boundary identification
+- Data classification by flow
+- Potential interception/pivot points
+- API endpoint inventory
+
+Return structured findings for synthesis with other Phase 1 agents.""",
+    subagent_type="t7-dataflow-mapping-agent"
+)
+
+Task(
+    description="Certificate Analysis",
+    prompt="""MISSION: Certificate and cryptographic analysis (TC-010)
+TARGET: [INSERT TARGET HERE]
+TEST CASE: TC-010
+
+REQUIRED OUTPUTS:
+- TC-010: Certificate Validity Period (<=13 months) - [PASS/FAIL]
+- Certificate inventory with expiry dates
+- Chain of trust verification
+- Cipher suite analysis
+- Key strength assessment
+- TLS configuration review
+- Certificate transparency findings
+
+Return structured findings for synthesis with other Phase 1 agents.""",
+    subagent_type="t7-certificate-agent"
+)
+
+Task(
+    description="Compliance Assessment",
+    prompt="""MISSION: CIS and NIAP compliance assessment
+TARGET: [INSERT TARGET HERE]
+FRAMEWORKS: CIS Debian 11 Benchmark v2.0.0, NIAP PP-OS v4.3
+
+REQUIRED OUTPUTS:
+- CIS Debian 11 control-by-control assessment
+- NIAP PP-OS v4.3 requirements verification
+- Pass/Fail status for each control
+- Compliance percentage scores
+- Critical gaps identified
+- Remediation recommendations prioritized
+
+Return structured findings for synthesis with other Phase 1 agents.""",
+    subagent_type="t7-compliance-agent"
+)
+```
+
+### PHASE 2: EXPLOITATION & LATERAL MOVEMENT LAUNCH
+
+```python
+# PHASE 2: EXPLOITATION & LATERAL MOVEMENT
+# Launch after Phase 1 synthesis, based on findings
+
+Task(
+    description="Vulnerability Exploitation",
+    prompt="""MISSION: Exploit identified vulnerabilities and escalate privileges
+TARGET: [INSERT TARGET HERE]
+VULNERABILITIES: [INSERT PHASE 1 FINDINGS HERE]
+CURRENT ACCESS: [INSERT CURRENT ACCESS LEVEL]
+
+REQUIRED OUTPUTS:
+- Exploitation attempts and results
+- PoC code developed (if applicable)
+- Access level achieved
+- Privilege escalation paths exploited
+- Post-exploitation position
+- Evidence of successful exploitation
+
+CONSTRAINTS: [INSERT ANY CONSTRAINTS]
+Return results for coordination with lateral movement agents.""",
+    subagent_type="t7-exploitation-agent"
+)
+
+Task(
+    description="Cloud Backend Pivot",
+    prompt="""MISSION: Pivot to cloud backend via target access (Objective 5)
+TARGET: [INSERT CLOUD ENVIRONMENT]
+PIVOT SOURCE: [INSERT COMPROMISED SYSTEM]
+CONTEXT: [INSERT PHASE 1 CLOUD FINDINGS]
+
+REQUIRED OUTPUTS:
+- Cloud credential discovery
+- IAM/role analysis
+- Cloud resource enumeration
+- Privilege escalation in cloud
+- Data access achieved
+- Backend system access
+
+CLOUD PROVIDER: [AWS/Azure/GCP]
+Return results for coordination with other Phase 2 agents.""",
+    subagent_type="t7-cloud-pivot-agent"
+)
+
+Task(
+    description="Reverse Tunnel Establishment",
+    prompt="""MISSION: Establish reverse tunnel to backend (Objective 6)
+TARGET: [INSERT NETWORK/SYSTEM]
+DESTINATION: [INSERT BACKEND TARGET]
+CONTEXT: [INSERT DATAFLOW MAPPING RESULTS]
+
+REQUIRED OUTPUTS:
+- Tunnel establishment status
+- Covert channel analysis
+- Stability assessment
+- Detection risk analysis
+- Alternative tunnel options
+- Persistence of tunnel
+
+EGRESS RESTRICTIONS: [INSERT KNOWN RESTRICTIONS]
+Return results for coordination with other Phase 2 agents.""",
+    subagent_type="t7-reverse-tunnel-agent"
+)
+
+Task(
+    description="Lateral Movement",
+    prompt="""MISSION: Internal lateral movement between systems (Objective 7)
+SOURCE: [INSERT COMPROMISED SYSTEM]
+DESTINATION: [INSERT TARGET SYSTEMS]
+CONTEXT: [INSERT RECON AND EXPLOITATION RESULTS]
+
+REQUIRED OUTPUTS:
+- Movement path documentation
+- Credentials used/discovered
+- Systems compromised
+- Access level on each system
+- Network position achieved
+- Recommended next movements
+
+AVAILABLE CREDS: [INSERT CREDENTIALS]
+Return results for coordination with other Phase 2 agents.""",
+    subagent_type="t7-lateral-movement-agent"
+)
+
+Task(
+    description="Persistence Analysis",
+    prompt="""MISSION: Analyze persistence mechanisms and options
+TARGET: [INSERT COMPROMISED SYSTEMS]
+CURRENT ACCESS: [INSERT ACCESS LEVEL]
+
+REQUIRED OUTPUTS:
+- Existing persistence mechanisms found
+- Recommended persistence techniques
+- Detection likelihood assessment
+- Survivability analysis
+- Cleanup procedures documented
+
+OS TYPE: [INSERT OS]
+STEALTH REQUIREMENT: [low/medium/high]
+Return results for Phase 2 synthesis.""",
+    subagent_type="t7-persistence-agent"
+)
+```
+
+### PHASE 3: ACTION ON OBJECTIVES LAUNCH
+
+```python
+# PHASE 3: ACTION ON OBJECTIVES
+# Launch after Phase 2 completion
+
+Task(
+    description="Data Exfiltration Demonstration",
+    prompt="""MISSION: Demonstrate data exfiltration capability (Objective 8)
+TARGET: [INSERT DATA TARGETS]
+SOURCE: [INSERT COMPROMISED SYSTEM WITH ACCESS]
+CONTEXT: [INSERT PHASE 2 RESULTS]
+
+REQUIRED OUTPUTS:
+- Data identified and classified
+- Exfiltration method demonstrated
+- Volume/type of accessible data
+- Evidence of capability (controlled demonstration)
+- Detection risk assessment
+- Data handling compliance maintained
+
+EXFIL METHOD: [INSERT APPROVED METHOD]
+CONSTRAINTS: [INSERT CONSTRAINTS - typically proof of capability only]
+Return results for final reporting.""",
+    subagent_type="t7-data-exfiltration-agent"
+)
+
+Task(
+    description="Final Evidence Collection",
+    prompt="""MISSION: Comprehensive evidence collection for all phases
+CONTEXT: All Phase 1, 2, and 3 activities
+CLASSIFICATION: [INSERT CLASSIFICATION]
+
+REQUIRED OUTPUTS:
+- Complete evidence inventory with hashes
+- Chain of custody documentation
+- Screenshots and recordings organized
+- Log extracts with timestamps
+- Artifact preservation confirmation
+- Evidence index for reporting
+
+EVIDENCE TYPES: All - screenshots, logs, artifacts, network captures
+FORMAT: FedRAMP-compliant documentation
+Return organized evidence package for report generation.""",
+    subagent_type="t7-evidence-collection-agent"
+)
+
+Task(
+    description="Final Report Generation",
+    prompt="""MISSION: Generate comprehensive final report
+AUDIENCE: Executive and Technical
+FINDINGS: [INSERT ALL PHASE RESULTS]
+
+REQUIRED OUTPUTS:
+- Executive summary (1-2 pages)
+- Technical findings detail (full)
+- Risk ratings with CVSS scores
+- Remediation roadmap prioritized
+- Evidence appendix with references
+- Methodology documentation (NIST 800-115)
+- Objective completion matrix
+- Test case results summary
+
+REPORT TYPE: Full FedRAMP Red Team Report
+FORMAT: Markdown (convertible to PDF)
+TEMPLATE: FedRAMP standard
+Return final deliverable package.""",
+    subagent_type="t7-report-generation-agent"
+)
+```
+
+### SPECIALIZED AGENT PARALLEL LAUNCHES
+
+#### Bug Bounty Hunt Launch
+```python
+# BUG BOUNTY HUNTING - Launch specialized hunters in parallel
+
+Task(
+    description="Bug Bounty - Web Vulnerabilities",
+    prompt="""MISSION: Hunt for web application vulnerabilities
+PROGRAM: [INSERT PROGRAM NAME]
+SCOPE: [INSERT SCOPE FROM PROGRAM]
+
+FOCUS: OWASP Top 10, business logic, auth bypass
+TIME BUDGET: [X hours]
+Return: Vulnerability reports ready for submission""",
+    subagent_type="t7-bbhunter"
+)
+
+Task(
+    description="Bug Bounty - Web App Testing",
+    prompt="""MISSION: Deep web application security testing
+TARGET: [INSERT WEB APP TARGETS]
+SCOPE: [INSERT SCOPE]
+
+FOCUS: Injection, XSS, SSRF, XXE, deserialization
+Return: Technical findings with reproduction steps""",
+    subagent_type="t7-pentesterweb"
+)
+
+Task(
+    description="Bug Bounty - Recon & Asset Discovery",
+    prompt="""MISSION: Comprehensive reconnaissance for bug bounty
+TARGET: [INSERT PROGRAM SCOPE]
+
+FOCUS: Subdomain enumeration, hidden endpoints, forgotten assets
+Return: Asset inventory with potential vulnerability indicators""",
+    subagent_type="t7-recon-agent"
+)
+```
+
+#### Full Red Team Launch
+```python
+# RED TEAM OPERATION - Full scope adversary simulation
+
+Task(
+    description="Red Team - Adversary Simulation",
+    prompt="""MISSION: Full-scope red team adversary emulation
+SCENARIO: [INSERT ADVERSARY SCENARIO]
+TARGET: [INSERT ORGANIZATION/SYSTEMS]
+
+ADVERSARY PROFILE: [APT to emulate]
+OBJECTIVES: [Specific flags/goals]
+Return: Attack narrative with MITRE ATT&CK mapping""",
+    subagent_type="t7-redteamer"
+)
+
+Task(
+    description="Red Team - Initial Access",
+    prompt="""MISSION: Achieve initial access to target environment
+TARGET: [INSERT EXTERNAL TARGETS]
+CONTEXT: Red team operation
+
+FOCUS: Phishing, external exploitation, credential attacks
+Return: Initial foothold documentation""",
+    subagent_type="t7-pentester"
+)
+
+Task(
+    description="Red Team - Social Engineering",
+    prompt="""MISSION: Social engineering component of red team
+TARGET: [INSERT TARGET PERSONNEL/ORG]
+PRETEXT: [INSERT APPROVED PRETEXT]
+
+AUTHORIZATION: [EXPLICIT AUTHORIZATION]
+Return: SE campaign results""",
+    subagent_type="t7-social-engineering-agent"
+)
+```
+
+---
+
+## FALLBACK LOGIC - ALTERNATIVE AGENT SELECTION
+
+### PRIMARY -> SECONDARY -> TERTIARY FALLBACK CHAINS
+
+When the primary agent is unavailable, overloaded, or returns insufficient results:
+
+```
+RECONNAISSANCE FALLBACK CHAIN:
+t7-recon-agent (PRIMARY)
+    -> t7-pentester (can do basic recon)
+    -> t7-bbhunter (specialized recon capabilities)
+    -> Manual enumeration guidance
+
+VULNERABILITY ANALYSIS FALLBACK CHAIN:
+t7-vuln-analysis-agent (PRIMARY)
+    -> t7-pentester (includes vuln scanning)
+    -> t7-pentesterweb (for web-specific vulns)
+    -> t7-compliance-agent (finds misconfigs)
+
+CONTAINER SECURITY FALLBACK CHAIN:
+t7-container-security-agent (PRIMARY)
+    -> t7-exploitation-agent (can test escapes)
+    -> t7-compliance-agent (container hardening checks)
+    -> Manual container testing guidance
+
+AUTHENTICATION FALLBACK CHAIN:
+t7-auth-bypass-agent (PRIMARY)
+    -> t7-pentesterweb (web auth testing)
+    -> t7-pentester (network auth testing)
+    -> t7-exploitation-agent (auth exploit dev)
+
+EXPLOITATION FALLBACK CHAIN:
+t7-exploitation-agent (PRIMARY)
+    -> t7-pentester (general exploitation)
+    -> t7-pentesterweb (web exploitation)
+    -> t7-redteamer (advanced exploitation)
+
+CLOUD SECURITY FALLBACK CHAIN:
+t7-cloud-pivot-agent (PRIMARY)
+    -> t7-pentester (cloud enumeration)
+    -> t7-recon-agent (cloud asset discovery)
+    -> t7-exploitation-agent (cloud exploits)
+
+LATERAL MOVEMENT FALLBACK CHAIN:
+t7-lateral-movement-agent (PRIMARY)
+    -> t7-redteamer (includes lateral movement)
+    -> t7-pentester (basic pivoting)
+    -> t7-exploitation-agent (pivot via exploits)
+
+WEB TESTING FALLBACK CHAIN:
+t7-pentesterweb (PRIMARY)
+    -> t7-bbhunter (web vuln hunting)
+    -> t7-pentester (basic web testing)
+    -> t7-vuln-analysis-agent (web scanners)
+
+CODE REVIEW FALLBACK CHAIN:
+t7-reviewer (PRIMARY)
+    -> t7-vuln-analysis-agent (SAST tools)
+    -> t7-pentesterweb (code-assisted testing)
+    -> Manual review guidance
+
+MALWARE ANALYSIS FALLBACK CHAIN:
+t7-malwareanalyst (PRIMARY)
+    -> t7-threathunter (IOC extraction)
+    -> t7-reviewer (code analysis aspects)
+    -> Manual analysis guidance
+
+THREAT HUNTING FALLBACK CHAIN:
+t7-threathunter (PRIMARY)
+    -> t7-malwareanalyst (malware-focused hunting)
+    -> t7-recon-agent (anomaly detection via recon)
+    -> Manual hunting guidance
+
+REPORT GENERATION FALLBACK CHAIN:
+t7-report-generation-agent (PRIMARY)
+    -> t7-evidence-collection-agent (can format findings)
+    -> Manual report template + synthesis
+    -> User-assisted report generation
+```
+
+### FALLBACK DECISION LOGIC
+
+```
+WHEN TO TRIGGER FALLBACK:
+
+1. AGENT UNAVAILABLE
+   - Agent returns error or timeout
+   - Agent explicitly states inability to complete task
+   -> Immediately try secondary agent
+
+2. INSUFFICIENT RESULTS
+   - Agent returns but findings are minimal/empty
+   - Agent completed but missed obvious findings
+   -> Launch secondary agent in parallel to augment
+
+3. SCOPE MISMATCH
+   - Task has aspects outside primary agent's expertise
+   -> Launch complementary agents in parallel
+   
+4. TIME CONSTRAINTS
+   - Primary agent taking too long
+   -> Launch secondary agent in parallel, use first complete result
+
+5. QUALITY CONCERNS
+   - Primary agent results seem incomplete
+   -> Launch secondary agent for validation/augmentation
+```
+
+### PARALLEL FALLBACK PATTERN
+
+When confidence is medium or results may be incomplete, launch primary AND secondary in parallel:
+
+```python
+# PARALLEL FALLBACK PATTERN
+# Use when: Medium confidence in primary, or comprehensive coverage needed
+
+# Example: Web vulnerability assessment with fallback
+Task(
+    description="Primary: Web Vuln Assessment",
+    prompt="[Full prompt for t7-pentesterweb]",
+    subagent_type="t7-pentesterweb"
+)
+
+Task(
+    description="Fallback: Bug Bounty Web Hunt",
+    prompt="[Full prompt for t7-bbhunter]",
+    subagent_type="t7-bbhunter"
+)
+
+# Synthesize results from both, taking the more comprehensive findings
+```
+
+### ESCALATION PATH
+
+If all fallbacks fail:
+
+```
+1. DOCUMENT FAILURE
+   - Record which agents were tried
+   - Document error messages/insufficient results
+   
+2. ANALYZE ROOT CAUSE
+   - Is this a tool limitation?
+   - Is this a scope/access issue?
+   - Is this a target-specific challenge?
+   
+3. MANUAL INTERVENTION OPTIONS
+   - Provide user with manual testing guidance
+   - Suggest alternative approaches
+   - Request additional access/information
+   
+4. PARTIAL COMPLETION
+   - Complete what is possible
+   - Document gaps clearly
+   - Provide recommendations for filling gaps
+```
+
+---
+
 ```
 +========================================================================+
 ||                                                                      ||
@@ -1219,6 +3042,12 @@ Task(description="Compliance check", prompt="Run CIS benchmark assessment...", s
 ||   PERFORMANCE = PARALLEL DELEGATION                                  ||
 ||   RESULTS = SPECIALIZED SUB-AGENTS                                   ||
 ||   EFFICIENCY = YOU COORDINATE, THEY EXECUTE                          ||
+||                                                                      ||
+||   USE SMART ROUTING TO SELECT THE RIGHT AGENT                        ||
+||   USE PROMPT TEMPLATES FOR CONSISTENT QUALITY                        ||
+||   USE WORKFLOW AUTOMATION FOR AGENT CHAINING                         ||
+||   USE PHASE BLOCKS FOR RAPID PARALLEL LAUNCHES                       ||
+||   USE FALLBACK LOGIC WHEN PRIMARY AGENTS FAIL                        ||
 ||                                                                      ||
 +========================================================================+
 ```
