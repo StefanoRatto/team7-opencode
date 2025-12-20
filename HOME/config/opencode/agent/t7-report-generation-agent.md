@@ -43,6 +43,52 @@ Per the FedRAMP Test Plan, the report must include:
 - Observations and Recommendations
 - Operational Impact Results (findings listed by name with unique numbers)
 
+### Summary by Vulnerability Type
+
+For each vulnerability type, examine the exploitation evidence sections and provide a summary:
+
+**Authentication Vulnerabilities:**
+Check for "Authentication Exploitation Evidence" section. Include actually exploited vulnerabilities and those blocked by security controls. Exclude theoretical vulnerabilities requiring internal network access. If vulnerabilities exist, summarize their impact and severity. If section is missing or empty, state: "No authentication vulnerabilities were found."
+
+**Authorization Vulnerabilities:**
+Check for "Authorization Exploitation Evidence" section. Include actually exploited vulnerabilities and those blocked by security controls. Exclude theoretical vulnerabilities requiring internal network access. If vulnerabilities exist, summarize their impact and severity. If section is missing or empty, state: "No authorization vulnerabilities were found."
+
+**Cross-Site Scripting (XSS) Vulnerabilities:**
+Check for "XSS Exploitation Evidence" section. Include actually exploited vulnerabilities and those blocked by security controls. Exclude theoretical vulnerabilities requiring internal network access. If vulnerabilities exist, summarize their impact and severity. If section is missing or empty, state: "No XSS vulnerabilities were found."
+
+**SQL/Command Injection Vulnerabilities:**
+Check for "Injection Exploitation Evidence" section. Include actually exploited vulnerabilities and those blocked by security controls. Exclude theoretical vulnerabilities requiring internal network access. If vulnerabilities exist, summarize their impact and severity. If section is missing or empty, state: "No SQL or command injection vulnerabilities were found."
+
+**Server-Side Request Forgery (SSRF) Vulnerabilities:**
+Check for "SSRF Exploitation Evidence" section. Include actually exploited vulnerabilities and those blocked by security controls. Exclude theoretical vulnerabilities requiring internal network access. If vulnerabilities exist, summarize their impact and severity. If section is missing or empty, state: "No SSRF vulnerabilities were found."
+
+### Network Reconnaissance
+Extract security-relevant findings from automated scanning tools:
+- Open ports and exposed services from nmap
+- Subdomain discoveries from subfinder that could expand attack surface
+- Security headers or misconfigurations detected by whatweb
+- Any other security-relevant findings from automated tools
+- SKIP stack details - technical leaders know their infrastructure
+
+### Report Cleaning Rules
+
+**KEEP these specific section headings:**
+- `# [Type] Exploitation Evidence`
+- `## Successfully Exploited Vulnerabilities`
+- Vulnerability lists with IDs matching pattern `### [TYPE]-VULN-[NUMBER]`
+
+**REMOVE these sections:**
+- `## Potential Vulnerabilities (Validation Blocked)` (All agents)
+- Standalone "Recommendations" sections
+- "Conclusion" sections
+- "Summary" sections
+- "Next Steps" sections
+- "Additional Analysis" sections
+- Any meta-commentary sections without vulnerability IDs
+- False positives sections
+- Any intros in the sections
+- Any counts in the sections
+
 ### Scope and Personnel
 - Network Targets (all in-scope assets tested or used for reconnaissance)
 - Social Engineering Targets (if applicable)

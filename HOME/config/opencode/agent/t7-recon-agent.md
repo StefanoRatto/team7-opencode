@@ -93,6 +93,127 @@ When performing reconnaissance, provide structured output including:
 6. **Attack Surface Analysis**: Prioritized list of potential attack vectors
 7. **Recommendations**: Next steps for exploitation based on findings
 
+## Attack Surface Mapping Methodology
+
+### Scope Boundaries
+
+**In-Scope: Network-Reachable Components**
+A component is in-scope if its execution can be initiated by a network request:
+- Publicly exposed web pages and API endpoints
+- Endpoints requiring authentication via standard login mechanisms
+- Developer utilities mistakenly exposed through routes
+
+**Out-of-Scope: Locally Executable Only**
+- Command-line interface tools
+- Development environment tooling
+- CI/CD pipeline scripts or build tools
+- Database migration scripts, backup tools
+- Local development servers, test harnesses
+
+### API Endpoint Inventory Format
+
+For each discovered endpoint, document:
+
+| Method | Endpoint Path | Required Role | Object ID Parameters | Authorization Mechanism | Description |
+|--------|---------------|---------------|---------------------|------------------------|-------------|
+| POST | /api/auth/login | anon | None | None | Handles user login |
+| GET | /api/users/{user_id} | user | user_id | Bearer Token + ownership check | Fetches user profile |
+| DELETE | /api/orders/{order_id} | user | order_id | Bearer Token + order ownership | Deletes user order |
+| GET | /api/admin/users | admin | None | Bearer Token + requireAdmin() | Admin user management |
+
+### Input Vector Documentation
+
+Document every location where the application accepts user-controlled input:
+- **URL Parameters:** e.g., `?redirect_url=`, `?user_id=`
+- **POST Body Fields:** e.g., `username`, `password`, `search_query`
+- **HTTP Headers:** e.g., `X-Forwarded-For` if used by the app
+- **Cookie Values:** e.g., `preferences_cookie`, `tracking_id`
+
+### Network & Interaction Map
+
+#### Entity Types
+- `ExternAsset`, `Service`, `Identity`, `DataStore`, `AdminPlane`, `ThirdParty`
+
+#### Zone Classification
+- `Internet`, `Edge`, `App`, `Data`, `Admin`, `BuildCI`, `ThirdParty`
+
+#### Data Classification
+- `PII`, `Tokens`, `Payments`, `Secrets`, `Public`
+
+#### Flow Documentation
+| FROM -> TO | Channel | Path/Port | Guards | Touches |
+|------------|---------|-----------|--------|---------|
+| User Browser -> WebApp | HTTPS | :443 /api/auth/login | None | Public |
+| WebApp -> PostgreSQL-DB | TCP | :5432 | vpc-only, mtls | PII, Tokens |
+
+### Guards Directory
+
+| Guard Name | Category | Statement |
+|------------|----------|-----------|
+| auth:user | Auth | Requires valid user session or Bearer token |
+| auth:admin | Auth | Requires valid admin session with admin scope |
+| ownership:user | ObjectOwnership | Verifies requesting user owns target object |
+| tenant:isolation | Authorization | Enforces multi-tenant data isolation |
+| context:workflow | Authorization | Ensures proper workflow state before access |
+
+## Role & Privilege Architecture
+
+### Discovered Roles Format
+| Role Name | Privilege Level | Scope/Domain | Code Implementation |
+|-----------|-----------------|--------------|---------------------|
+| anon | 0 | Global | No authentication required |
+| user | 1 | Global | Base authenticated user role |
+| admin | 5 | Global | Full application administration |
+
+### Privilege Lattice
+```
+Privilege Ordering (-> means "can access resources of"):
+anon -> user -> admin
+
+Parallel Isolation (|| means "not ordered relative to each other"):
+team_admin || dept_admin (both > user, but isolated from each other)
+```
+
+## Authorization Vulnerability Candidates
+
+### Horizontal Privilege Escalation Candidates
+Endpoints with object identifiers that could allow access to other users' resources:
+
+| Priority | Endpoint Pattern | Object ID Parameter | Data Type | Sensitivity |
+|----------|-----------------|---------------------|-----------|-------------|
+| High | /api/orders/{order_id} | order_id | financial | User can access other users' orders |
+| High | /api/users/{user_id}/profile | user_id | user_data | Profile data access |
+
+### Vertical Privilege Escalation Candidates
+Endpoints requiring higher privileges:
+
+| Target Role | Endpoint Pattern | Functionality | Risk Level |
+|-------------|-----------------|---------------|------------|
+| admin | /admin/* | Administrative functions | High |
+| admin | /api/admin/users | User management | High |
+
+### Context-Based Authorization Candidates
+Multi-step workflow endpoints assuming prior steps completed:
+
+| Workflow | Endpoint | Expected Prior State | Bypass Potential |
+|----------|----------|---------------------|------------------|
+| Checkout | /api/checkout/confirm | Cart populated, payment selected | Direct access to confirmation |
+| Password Reset | /api/auth/reset/confirm | Reset token generated | Direct password reset |
+
+## Injection Source Identification
+
+### Injection Source Definitions
+- **Command Injection Source:** Data flowing from user-controlled origin into shell/system command
+- **SQL Injection Source:** User-controllable input reaching database query string
+- **LFI/RFI/Path Traversal Source:** User-controllable input influencing file paths
+- **SSTI Source:** User-controllable input embedded in template expressions
+- **Deserialization Source:** User-controllable input passed to deserialization functions
+
+### Common Vectors
+HTTP params/body/headers/cookies, file uploads/names, URL paths, stored data, webhooks, sessions, message queues
+
+**CRITICAL:** Only include sources tracing to dangerous sinks (shell, DB, file ops, templates, deserialization)
+
 ## Operational Guidelines
 
 - Always document all reconnaissance activities with timestamps

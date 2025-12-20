@@ -90,6 +90,121 @@ Expected Result: First three attempts denied
 - Email/username harvesting
 - Privileged account identification
 
+## White-Box Authentication Analysis Methodology
+
+### 1) Transport & Caching
+- For all auth endpoints, enforce HTTPS (no HTTP fallbacks/hops); verify HSTS at the edge
+- For all auth responses, check `Cache-Control: no-store` / `Pragma: no-cache`
+- **If failed -> classify:** `transport_exposure` -> **suggested attack:** credential/session theft
+
+### 2) Rate Limiting / CAPTCHA / Monitoring
+- For login, signup, reset/recovery, and token endpoints, verify per-IP and/or per-account rate limits exist
+- For repeated failures, verify lockout/backoff or CAPTCHA is triggered
+- Verify basic monitoring/alerting exists for failed-login spikes
+- **If failed -> classify:** `abuse_defenses_missing` -> **suggested attack:** brute_force_login / credential_stuffing
+
+### 3) Session Management (Cookies)
+- For all session cookies, check `HttpOnly` and `Secure` flags; set appropriate `SameSite` (typically Lax/Strict)
+- After successful login, verify session ID is rotated (no reuse)
+- Ensure logout invalidates the server-side session
+- Set idle timeout and absolute session timeout
+- Confirm session IDs/tokens are not in URLs
+- **If failed -> classify:** `session_cookie_misconfig` -> **suggested attack:** session_hijacking / session_fixation
+
+### 4) Token/Session Properties
+- For any custom tokens, review the generator to confirm uniqueness and cryptographic randomness
+- Confirm tokens are only sent over HTTPS and never logged
+- Verify tokens/sessions have explicit expiration (TTL) and are invalidated on logout
+- **If failed -> classify:** `token_management_issue` -> **suggested attack:** token_replay / offline_guessing
+
+### 5) Session Fixation
+- For the login flow, compare pre-login vs post-login session identifiers
+- Require a new ID on auth success
+- **If failed -> classify:** `login_flow_logic` -> **suggested attack:** session_fixation
+
+### 6) Password & Account Policy
+- Verify there are no default credentials in code, fixtures, or bootstrap scripts
+- Verify a strong password policy is enforced server-side
+- Verify passwords are safely stored (one-way hashing, not reversible)
+- Verify MFA is available/enforced where required
+- **If failed -> classify:** `weak_credentials` -> **suggested attack:** credential_stuffing / password_spraying
+
+### 7) Login/Signup Responses
+- Ensure error messages are generic (no user-enumeration hints)
+- Ensure auth state is not reflected in URLs/redirects that could be abused
+- **If failed -> classify:** `login_flow_logic` -> **suggested attack:** account_enumeration / open_redirect_chain
+
+### 8) Recovery & Logout
+- For password reset/recovery, verify single-use, short-TTL tokens; rate-limit attempts
+- For logout, verify server-side invalidation and client cookie clearing
+- **If failed -> classify:** `reset_recovery_flaw` -> **suggested attack:** reset_token_guessing / takeover
+
+### 9) SSO/OAuth (if applicable)
+- For all OAuth/OIDC flows, validate `state` (CSRF) and `nonce` (replay)
+- Enforce exact redirect URI allowlists (no wildcards)
+- For IdP tokens, verify signature and pin accepted algorithms; validate `iss`, `aud`, `exp`
+- For public clients, require PKCE
+- **nOAuth check:** Verify user identification uses immutable `sub` claim, NOT mutable attributes like `email`
+- **If failed -> classify:** `login_flow_logic` or `token_management_issue` -> **suggested attack:** oauth_code_interception / noauth_attribute_hijack
+
+## Authorization Analysis Methodology
+
+### Horizontal Authorization Analysis
+For endpoints where users access resources by ID that might belong to other users:
+
+**Sufficient Guard Criteria (horizontal):**
+- Enforces session authentication
+- Binds identifier to current user/org (ownership check)
+- Validates tenant/organization membership when multi-tenant
+- Ensures database queries include proper user/tenant/org filtering
+- Prevents manipulation of user/tenant/org identifiers in requests
+- Runs before any side effect
+- Dominates all code paths
+
+**Termination:**
+- **Guarded:** if sufficient guard found before any side effect
+- **Vulnerable:** if any side effect is reached before a sufficient guard
+
+### Vertical Authorization Analysis
+For admin/privileged endpoints that regular users shouldn't access:
+
+**Sufficient Guard Criteria (vertical):**
+- Explicit check for required role/capability
+- Executed before any side effect
+- Dominates all code paths
+- Uses correct guard (not a missing/wrong include)
+
+**Termination:**
+- **Guarded:** sufficient role check dominates sink
+- **Vulnerable:** any privileged side effect occurs before such a guard
+
+### Context/Workflow Authorization Analysis
+For multi-step workflows where order/state matters:
+
+**Sufficient Guard Criteria (context):**
+- Each step enforces prior state (status flags, stage tokens, nonces)
+- Guard runs before applying state change
+
+**Termination:**
+- **Guarded:** all later steps validate prior state before side effects
+- **Vulnerable:** if any step allows a side effect without confirming prior step status
+
+## Confidence Scoring
+
+- **High:** The flaw is directly established and deterministic. Direct evidence with no material alternate control. Scope is clear.
+- **Medium:** The flaw is strongly indicated but there is at least one material uncertainty (possible upstream control, conditional behavior).
+- **Low:** The flaw is plausible but unverified or weakly supported (indirect evidence, unclear scope).
+
+**Rule:** When uncertain, round down (favor Medium/Low) to minimize false positives.
+
+## False Positives to Avoid
+
+- **Counting client-side mitigations:** Do not consider client-only checks as defenses; server-side enforcement is required
+- **Assuming from documentation:** Do not treat policy docs/config comments as proof; require code/config evidence
+- **UI-only checks:** Hidden buttons, disabled forms, or client-side role checks do NOT count as authorization guards
+- **Guards after side effects:** A guard that runs AFTER database writes or state changes does not protect that side effect
+- **Confusing authentication with authorization:** Being logged in doesn't mean proper ownership/role checks exist
+
 ## Linux Authentication Bypass Techniques
 
 ### PAM Analysis

@@ -68,6 +68,172 @@ Based on the FedRAMP Red Team Exercise Test Plan Phase 1:
 - **HTML Entity Encoding Check**: Verify password handling for encoded characters
 - **Privileged Action Visibility**: Check for hidden UI elements based on roles
 
+## Injection Vulnerability Analysis Methodology
+
+### Source-to-Sink Tracing
+
+**Goal:** Prove whether untrusted input can influence the **structure** of a backend command (SQL or Shell) or reach sensitive **slots** without the correct defense.
+
+### 1) Identify Injection Sources
+All sources are marked as **Tainted** until they hit a sanitization that matches the sink context:
+- HTTP params/body/headers/cookies
+- File uploads/names
+- URL paths
+- Stored data
+- Webhooks
+- Sessions
+- Message queues
+
+### 2) Trace Data Flow Paths from Source to Sink
+For each source, identify every unique "Data Flow Path" to a database/command sink:
+- **Path Forking:** If a single source variable leads to multiple different sinks, treat each route as a separate path
+- **Record for each path:**
+  - A. The full sequence of transformations
+  - B. The ordered list of sanitizers on that path
+  - C. All concatenations on that path (flag those after sanitization)
+
+### 3) Detect Sinks and Label Slot Types
+
+**SQLi Sinks:** DB calls, raw SQL, string-built queries
+**Command Sinks:** `exec`, `system`, `subprocess`, shell invocations
+**File Sinks:** `include`, `require`, `fopen`, `readFile`
+**SSTI Sinks:** template `render`/`compile` with user content
+**Deserialize Sinks:** `pickle.loads`, `unserialize`, `readObject`, `yaml.load`
+
+**Slot Labels:**
+- SQL: `val` / `like` / `num` / `enum` / `ident`
+- CMD: `argument` / `part-of-string`
+- FILE: `path` / `include`
+- TEMPLATE: `expression`
+- DESERIALIZE: `object`
+- PATH: `component`
+
+### 4) Match Sanitization to Sink Context
+
+**SQL:**
+- Binds for val/like/num
+- Whitelist for enum/ident
+- **Mismatch:** concat, regex, wrong slot defense
+
+**Command:**
+- Array args (`shell=False`) OR `shlex.quote()`
+- **Mismatch:** concat, blacklist, `shell=True`
+
+**File/Path:**
+- Whitelist paths OR `resolve()` + boundary check
+- **Mismatch:** concat, `../` blacklist, no protocol check
+
+**SSTI:**
+- Sandboxed context + autoescape; no user input in expressions
+- **Mismatch:** concat, weak sandbox
+
+**Deserialize:**
+- Trusted sources only; safe formats + HMAC
+- **Mismatch:** untrusted input, pickle/unserialize
+
+### 5) Make the Call (Vulnerable or Safe)
+- **Vulnerable:** if any tainted input reaches a slot with no defense or the wrong one
+- Include a short rationale (e.g., "context mismatch: regex escape on ORDER BY keyword slot")
+- If concat occurred **after** sanitization, treat that sanitization as **non-effective**
+
+### 6) Confidence Scoring
+- **High:** Binds on value/like/numeric; strict casts; whitelists for all syntax slots; no post-sanitization concat
+- **Medium:** Binds present but upstream transforms unclear; partial whitelists; some unreviewed branches
+- **Low:** Any concat into syntax slots; regex-only "sanitization"; generic escaping where binds are required
+
+## XSS Vulnerability Analysis Methodology
+
+### Sink-to-Source Backward Taint Analysis
+
+**Goal:** Identify vulnerable data flow paths by starting at XSS sinks and tracing backward to their sanitizations and sources.
+
+**Core Principle:** Data is assumed to be tainted until a context-appropriate output encoder is encountered.
+
+### 1) Identify XSS Sinks
+- HTML Body: `innerHTML`, `outerHTML`, `document.write()`, `insertAdjacentHTML()`
+- HTML Attribute: Event handlers (`onclick`, `onerror`), URL-based (`href`, `src`), `style`
+- JavaScript Context: `eval()`, `Function()`, `setTimeout()` with string, `<script>` tags
+- CSS Context: `element.style` properties, `<style>` tags
+- URL Context: `location`, `location.href`, `window.open()`, `history.pushState()`
+
+### 2) Trace Each Sink Backward
+- **Early Termination:** If you encounter a sanitization function, check:
+  1. **Context Match:** Is the function correct for the sink's render context?
+  2. **Mutation Check:** Any string concatenations between sanitizer and sink?
+- If sanitizer is correct match AND no intermediate mutations -> **SAFE**
+
+### 3) Encoding Context Rules
+- **HTML_BODY:** Requires HTML Entity Encoding (`<` -> `&lt;`)
+- **HTML_ATTRIBUTE:** Requires Attribute Encoding
+- **JAVASCRIPT_STRING:** Requires JavaScript String Escaping (`'` -> `\'`)
+- **URL_PARAM:** Requires URL Encoding
+- **CSS_VALUE:** Requires CSS Hex Encoding
+
+### 4) Classify the Vulnerability
+- **Stored XSS:** Backward path terminates at a Database Read without sanitization
+- **Reflected XSS:** Backward path terminates at immediate user input
+- **DOM-based XSS:** Entire path from source to sink exists in client-side code
+
+## SSRF Vulnerability Analysis Methodology
+
+### Backward Taint Analysis for SSRF
+
+**Goal:** Identify vulnerable data flow paths by starting at SSRF sinks and tracing backward to sanitizations and sources.
+
+### 1) Identify SSRF Sinks
+- HTTP(S) clients: `curl`, `requests`, `axios`, `fetch`, `net/http`
+- Raw sockets: `Socket.connect`, `net.Dial`
+- URL openers: `file_get_contents`, `fopen`, `include_once`
+- Headless browsers: Puppeteer, Playwright, Selenium
+- Media processors: ImageMagick, FFmpeg with URLs
+
+### 2) Trace Each Sink Backward
+**Sanitization Check:**
+1. **Context Match:** Does it mitigate SSRF for this sink?
+   - HTTP(S) client -> scheme + host/domain allowlist + CIDR/IP checks
+   - Raw sockets -> port allowlist + CIDR/IP checks
+   - Media/render tools -> network disabled or strict allowlist
+2. **Mutation Check:** Any concatenations, redirects, or protocol swaps after sanitization?
+
+### 3) Source Classification
+- **Reflected SSRF:** Trace reaches immediate user input without proper sanitization
+- **Stored SSRF:** Trace reaches database read (webhook URL, stored config) without sanitization
+- **Blind SSRF:** Sink executes request but gives no response
+- **Semi-blind SSRF:** Only get error messages/timing info
+
+### 4) Protocol and Scheme Validation
+- Verify only approved protocols allowed (typically https://, sometimes http://)
+- Check for dangerous schemes: `file://`, `ftp://`, `gopher://`, `dict://`, `ldap://`
+
+### 5) Hostname and IP Address Validation
+- Verify requests to internal/private IP ranges are blocked
+- Check for DNS rebinding protection
+- Verify cloud metadata endpoints specifically blocked (169.254.169.254)
+
+## False Positives to Avoid
+
+**General:**
+- Treating early sanitization as sufficient when later concatenation reintroduces taint
+- Confusing application-level validation errors with backend execution errors
+- Mistaking WAF blocking for proof of a flaw
+
+**SQLi-Specific:**
+- Assuming parameter binds protect SQL identifiers or keywords
+- Relying on generic regex/escaping for data value slots
+
+**Command Injection-Specific:**
+- Assuming a blacklist of special characters is a secure defense
+- Failing to differentiate between safe array-based and unsafe string-based execution
+
+**XSS-Specific:**
+- Self-XSS (requires user to paste payload)
+- WAF blocking (document but find bypass)
+- Incorrect encoding as a fix (HTML encoding inside JS string)
+
+**SSRF-Specific:**
+- Counting client-side restrictions as defenses
+- Timeout as evidence without additional confirmation
+
 ## Test Cases from FedRAMP Plan
 
 ### Container Security Tests
