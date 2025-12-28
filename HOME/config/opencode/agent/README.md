@@ -65,6 +65,14 @@ The primary orchestration agent is defined at:
 | `t7-threathunter.md` | Threat Hunter | World class threat hunting |
 | `t7-reviewer.md` | Code Reviewer | Security-focused code review |
 
+### Vulnerability Specialists
+
+| Agent File | Description | Purpose | Phases |
+|------------|-------------|---------|--------|
+| `t7-xss-specialist.md` | XSS Vulnerability Specialist | XSS analysis and exploitation (Reflected, Stored, DOM) | Analysis, Exploitation |
+| `t7-injection-specialist.md` | Injection Vulnerability Specialist | SQLi, Command Injection, SSTI, LFI, RFI analysis | Analysis, Exploitation |
+| `t7-ssrf-specialist.md` | SSRF Vulnerability Specialist | SSRF analysis and internal service access | Analysis, Exploitation |
+
 ## Test Case Coverage
 
 | Test Case | Agent | Description |
@@ -109,7 +117,7 @@ The primary orchestration agent is defined at:
 team7-primary
 ├── Phase 1 Agents
 │   ├── t7-recon-agent
-│   │   └── feeds → t7-vuln-analysis-agent, t7-dataflow-mapping-agent
+│   │   └── feeds → t7-vuln-analysis-agent, t7-dataflow-mapping-agent, t7-code-review-agent
 │   ├── t7-vuln-analysis-agent
 │   │   └── feeds → t7-exploitation-agent, t7-compliance-agent
 │   ├── t7-container-security-agent
@@ -132,6 +140,10 @@ team7-primary
 ├── Phase 3 Agents
 │   └── t7-data-exfiltration-agent
 │       └── feeds → t7-report-generation-agent
+├── Vulnerability Specialists (Two-Phase: Analysis + Exploitation)
+│   ├── t7-xss-specialist → XSS analysis/exploitation
+│   ├── t7-injection-specialist → Injection analysis/exploitation
+│   └── t7-ssrf-specialist → SSRF analysis/exploitation
 ├── Specialized Agents
 │   ├── t7-bbhunter → Bug bounty hunting
 │   ├── t7-malwareanalyst → Malware analysis
@@ -139,7 +151,8 @@ team7-primary
 │   ├── t7-pentesterweb → Web app testing
 │   ├── t7-redteamer → Red team operations
 │   ├── t7-threathunter → Threat hunting
-│   └── t7-reviewer → Code review
+│   ├── t7-reviewer → Security-focused code review
+│   └── t7-code-review-agent → White-box code analysis, attack surface mapping
 └── Support Agents
     ├── t7-compliance-agent → t7-report-generation-agent
     ├── t7-certificate-agent → t7-compliance-agent, t7-report-generation-agent
@@ -191,6 +204,21 @@ Task(description="Cert analysis", prompt="...", subagent_type="t7-certificate-ag
 Task(description="Compliance", prompt="...", subagent_type="t7-compliance-agent")
 ```
 
+### Vulnerability Specialist Usage Pattern
+
+Vulnerability specialists follow a two-phase pattern:
+```python
+# Phase 1: Analysis (discover all sinks and potential vectors)
+Task(description="XSS Analysis", prompt="PHASE: ANALYSIS ...", subagent_type="t7-xss-specialist")
+Task(description="Injection Analysis", prompt="PHASE: ANALYSIS ...", subagent_type="t7-injection-specialist")
+Task(description="SSRF Analysis", prompt="PHASE: ANALYSIS ...", subagent_type="t7-ssrf-specialist")
+
+# Phase 2: Exploitation (after analysis completes and prioritization is done)
+Task(description="XSS Exploitation", prompt="PHASE: EXPLOITATION ...", subagent_type="t7-xss-specialist")
+Task(description="Injection Exploitation", prompt="PHASE: EXPLOITATION ...", subagent_type="t7-injection-specialist")
+Task(description="SSRF Exploitation", prompt="PHASE: EXPLOITATION ...", subagent_type="t7-ssrf-specialist")
+```
+
 ### Agent Communication
 
 Sub-agents communicate findings through structured output that feeds into:
@@ -208,6 +236,46 @@ Each sub-agent is configured with:
 
 See `opencode.jsonc` for full configuration details.
 
+## Design Patterns Integration
+
+### Oh-My-Opencode Patterns
+
+team7 sub-agents integrate oh-my-opencode design patterns for consistent agent behavior:
+
+**Operational Discipline (All Agents)**
+- Intent Analysis: EXECUTE FIRST - classify request before acting
+- Parallel Execution: DEFAULT BEHAVIOR - launch independent tasks simultaneously
+- Structured Results: MANDATORY FORMAT - return data in defined schemas
+- Evidence Requirements: Document all findings with reproducible steps
+- Date Awareness: CRITICAL - context awareness for temporal data
+
+**Vulnerability Specialist Pattern (t7-*-specialist agents)**
+- Two-Phase Workflow: ANALYSIS → EXPLOITATION
+  - Phase 1 (ANALYSIS): Discover all sinks, classify render contexts, build exploitation queue
+  - Phase 2 (EXPLOITATION): Execute verified payloads, demonstrate impact
+- Output Format: JSON queues (e.g., `xss_exploitation_queue.json`) for reproducible testing
+- Witness Payloads: Test with benign payloads to confirm sink existence before exploitation
+
+**White-Box Analysis Pattern (t7-code-review-agent)**
+- Pre-Reconnaissance: Static code analysis before dynamic testing
+- Attack Surface Mapping: Entry points, sinks, API endpoints, critical paths
+- Sink Classification: XSS, SSRF, Injection, Deserialization categories
+- Context Tracing: Source-to-sink data flow analysis
+
+**Evidence Collection Pattern (t7-evidence-collection-agent)**
+- Chain of Custody: Timestamps, hashes, collector attribution
+- Structured Evidence: Screenshots, logs, artifacts, network captures
+- Preservable Format: FedRAMP-compliant documentation structure
+
+### Pattern Enforcement
+
+All sub-agents follow these mandatory patterns:
+1. **MUST** execute Intent Analysis before any other action
+2. **MUST** use parallel execution for independent tasks
+3. **MUST** return structured results in defined formats
+4. **MUST** document evidence with reproducible steps
+5. **MUST** update deliverables in `deliverables/` directory
+
 ## File Locations
 
 All agent definition files are located in:
@@ -221,8 +289,66 @@ Primary agent configuration:
 ./opencode.jsonc
 ```
 
+## Deliverables Directory
+
+Agents write structured outputs to the `deliverables/` directory:
+
+```
+deliverables/
+├── recon_deliverable.md              # t7-recon-agent
+├── vuln_analysis_deliverable.md      # t7-vuln-analysis-agent
+├── container_security_deliverable.md # t7-container-security-agent
+├── auth_bypass_deliverable.md        # t7-auth-bypass-agent
+├── dataflow_deliverable.md           # t7-dataflow-mapping-agent
+├── certificate_deliverable.md        # t7-certificate-agent
+├── compliance_deliverable.md         # t7-compliance-agent
+├── code_analysis_deliverable.md     # t7-code-review-agent (white-box)
+├── xss_exploitation_queue.json      # t7-xss-specialist (analysis phase)
+├── injection_exploitation_queue.json # t7-injection-specialist (analysis phase)
+├── ssrf_exploitation_queue.json     # t7-ssrf-specialist (analysis phase)
+└── final_report.md                   # t7-report-generation-agent
+```
+
+### Vulnerability Specialist Queue Files
+
+Specialists produce JSON queue files during the ANALYSIS phase:
+
+**Format:**
+```json
+{
+  "queue": [
+    {
+      "id": "XSS-001",
+      "sink_endpoint": "/api/search",
+      "sink_type": "innerHTML",
+      "source_parameter": "q",
+      "render_context": "HTML_BODY",
+      "encoding_gap": true,
+      "witness_payload": "\"<img src=x onerror=alert(1)>\"",
+      "witness_reflection": "Confirmed",
+      "exploitable": true
+    }
+  ],
+  "analysis_summary": {
+    "total_sinks": 15,
+    "exploitable_sinks": 8,
+    "priority_high": 3
+  }
+}
+```
+
+These queue files are consumed during the EXPLOITATION phase to execute targeted, verified payloads.
+
 ## Version Information
 
-- **Version**: Current
+- **Version**: Current (updated with oh-my-opencode patterns integration)
 - **FedRAMP Test Plan Version**: Latest
 - **Assessment Period**: As defined in engagement scope
+
+### Recent Updates
+- Added Vulnerability Specialists section (XSS, Injection, SSRF)
+- Integrated oh-my-opencode design patterns across all agents
+- Added two-phase vulnerability specialist workflow (Analysis + Exploitation)
+- Added deliverables directory structure documentation
+- Updated agent dependencies tree with t7-code-review-agent
+- Added evidence collection and chain of custody patterns
