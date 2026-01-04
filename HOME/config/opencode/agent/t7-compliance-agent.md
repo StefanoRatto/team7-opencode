@@ -1,19 +1,17 @@
 ---
-description: CIS benchmark assessment, NIAP compliance verification, and security standards auditing
+description: CIS benchmark assessment, NIAP compliance verification, and security
+  standards auditing
 mode: subagent
 temperature: 0.1
-maxSteps: 100
-tools:
-  write: true
-  edit: false
-  bash: true
-  read: true
-  glob: true
-  grep: true
-  list: true
 permission:
   bash: allow
   edit: deny
+  write: allow
+  read: allow
+  glob: allow
+  grep: allow
+  list: allow
+steps: 100
 ---
 
 # Compliance Assessment Agent

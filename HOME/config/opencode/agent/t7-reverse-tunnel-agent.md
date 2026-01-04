@@ -1,19 +1,17 @@
 ---
-description: Reverse tunneling, covert channel establishment, C2 communication, and network security bypass
+description: Reverse tunneling, covert channel establishment, C2 communication, and
+  network security bypass
 mode: subagent
 temperature: 0.3
-maxSteps: 40
-tools:
-  write: true
-  edit: false
-  bash: true
-  read: true
-  glob: true
-  grep: true
-  list: true
 permission:
   bash: allow
   edit: deny
+  write: allow
+  read: allow
+  glob: allow
+  grep: allow
+  list: allow
+steps: 40
 ---
 
 # Reverse Tunnel Agent

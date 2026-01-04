@@ -1,19 +1,17 @@
 ---
-description: Data exfiltration testing, sensitive data identification, and data exposure risk demonstration
+description: Data exfiltration testing, sensitive data identification, and data exposure
+  risk demonstration
 mode: subagent
 temperature: 0.3
-maxSteps: 40
-tools:
-  write: false
-  edit: false
-  bash: true
-  read: true
-  glob: true
-  grep: true
-  list: true
 permission:
   bash: allow
   edit: deny
+  write: deny
+  read: allow
+  glob: allow
+  grep: allow
+  list: allow
+steps: 40
 ---
 
 # Data Exfiltration Agent

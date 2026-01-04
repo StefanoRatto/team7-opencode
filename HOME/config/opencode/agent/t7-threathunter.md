@@ -1,21 +1,18 @@
 ---
-description: Threat hunting, IOC analysis, behavioral detection, and proactive threat identification
+description: Threat hunting, IOC analysis, behavioral detection, and proactive threat
+  identification
 mode: subagent
 temperature: 0.2
-maxSteps: 50
-tools:
-  write: false
-  edit: false
-  bash: true
-  read: true
-  glob: true
-  grep: true
-  list: true
-  webfetch: true
 permission:
   bash: allow
   webfetch: allow
   edit: deny
+  write: deny
+  read: allow
+  glob: allow
+  grep: allow
+  list: allow
+steps: 50
 ---
 
 # Threat Hunter Agent

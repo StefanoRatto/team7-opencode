@@ -1,19 +1,17 @@
 ---
-description: Persistence mechanism analysis, backdoor detection, and access maintenance testing
+description: Persistence mechanism analysis, backdoor detection, and access maintenance
+  testing
 mode: subagent
 temperature: 0.2
-maxSteps: 40
-tools:
-  write: false
-  edit: false
-  bash: true
-  read: true
-  glob: true
-  grep: true
-  list: true
 permission:
   bash: allow
   edit: deny
+  write: deny
+  read: allow
+  glob: allow
+  grep: allow
+  list: allow
+steps: 40
 ---
 
 # Persistence Agent

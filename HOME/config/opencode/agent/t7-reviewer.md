@@ -1,19 +1,17 @@
 ---
-description: Security-focused code review, vulnerability identification, and secure coding guidance
+description: Security-focused code review, vulnerability identification, and secure
+  coding guidance
 mode: subagent
 temperature: 0.2
-maxSteps: 30
-tools:
-  write: false
-  edit: false
-  bash: true
-  read: true
-  glob: true
-  grep: true
-  list: true
 permission:
   bash: allow
   edit: deny
+  write: deny
+  read: allow
+  glob: allow
+  grep: allow
+  list: allow
+steps: 30
 ---
 
 # Security Code Reviewer Agent

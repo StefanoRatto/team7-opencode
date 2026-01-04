@@ -1,19 +1,17 @@
 ---
-description: Lateral movement testing, pivoting between systems, and internal network traversal
+description: Lateral movement testing, pivoting between systems, and internal network
+  traversal
 mode: subagent
 temperature: 0.3
-maxSteps: 50
-tools:
-  write: false
-  edit: false
-  bash: true
-  read: true
-  glob: true
-  grep: true
-  list: true
 permission:
   bash: allow
   edit: deny
+  write: deny
+  read: allow
+  glob: allow
+  grep: allow
+  list: allow
+steps: 50
 ---
 
 # Lateral Movement Agent

@@ -1,19 +1,17 @@
 ---
-description: Evidence collection, chain of custody documentation, and forensic artifact preservation
+description: Evidence collection, chain of custody documentation, and forensic artifact
+  preservation
 mode: subagent
 temperature: 0.1
-maxSteps: 50
-tools:
-  write: true
-  edit: true
-  bash: true
-  read: true
-  glob: true
-  grep: true
-  list: true
 permission:
   bash: allow
   edit: allow
+  write: allow
+  read: allow
+  glob: allow
+  grep: allow
+  list: allow
+steps: 50
 ---
 
 # Evidence Collection Agent

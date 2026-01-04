@@ -1,20 +1,18 @@
 ---
-description: Security-focused white-box code analysis, attack surface mapping, and pre-engagement intelligence gathering
+description: Security-focused white-box code analysis, attack surface mapping, and
+  pre-engagement intelligence gathering
 mode: subagent
 temperature: 0.2
-maxSteps: 50
-tools:
-  write: true
-  edit: true
-  bash: true
-  read: true
-  glob: true
-  grep: true
-  list: true
-  task: true
 permission:
   bash: allow
   edit: allow
+  write: allow
+  read: allow
+  glob: allow
+  grep: allow
+  list: allow
+  task: allow
+steps: 50
 ---
 
 # Security Code Analysis Agent (t7-code-review-agent)

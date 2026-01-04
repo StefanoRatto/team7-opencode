@@ -1,19 +1,17 @@
 ---
-description: Container escape testing, Docker/containerd security, namespace isolation, and image security (TC-001 to TC-007)
+description: Container escape testing, Docker/containerd security, namespace isolation,
+  and image security (TC-001 to TC-007)
 mode: subagent
 temperature: 0.2
-maxSteps: 50
-tools:
-  write: false
-  edit: false
-  bash: true
-  read: true
-  glob: true
-  grep: true
-  list: true
 permission:
   bash: allow
   edit: deny
+  write: deny
+  read: allow
+  glob: allow
+  grep: allow
+  list: allow
+steps: 50
 ---
 
 # Container Security Agent

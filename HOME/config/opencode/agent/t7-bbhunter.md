@@ -1,21 +1,18 @@
 ---
-description: Bug bounty hunting, vulnerability discovery, responsible disclosure, and bounty program engagement
+description: Bug bounty hunting, vulnerability discovery, responsible disclosure,
+  and bounty program engagement
 mode: subagent
 temperature: 0.3
-maxSteps: 50
-tools:
-  write: true
-  edit: false
-  bash: true
-  read: true
-  glob: true
-  grep: true
-  list: true
-  webfetch: true
 permission:
   bash: allow
   webfetch: allow
   edit: deny
+  write: allow
+  read: allow
+  glob: allow
+  grep: allow
+  list: allow
+steps: 50
 ---
 
 # Bug Bounty Hunter Agent
