@@ -1,0 +1,147 @@
+diff --git a/packages/opencode/src/cli/cmd/tui/app.tsx b/packages/opencode/src/cli/cmd/tui/app.tsx
+index aa62c6c58..1f28ed9b4 100644
+--- a/packages/opencode/src/cli/cmd/tui/app.tsx
++++ b/packages/opencode/src/cli/cmd/tui/app.tsx
+@@ -1,3 +1,4 @@
++import { Global } from "@/global"
+ import { render, useKeyboard, useRenderer, useTerminalDimensions } from "@opentui/solid"
+ import { Clipboard } from "@tui/util/clipboard"
+ import { TextAttributes } from "@opentui/core"
+@@ -648,14 +649,46 @@ function App() {
+         }
+       }}
+     >
+-      <Switch>
+-        <Match when={route.data.type === "home"}>
+-          <Home />
+-        </Match>
+-        <Match when={route.data.type === "session"}>
+-          <Session />
+-        </Match>
+-      </Switch>
++      <box flexDirection="column" flexGrow={1}>
++        <Switch>
++          <Match when={route.data.type === "home"}>
++            <Home />
++          </Match>
++          <Match when={route.data.type === "session"}>
++            <Session />
++          </Match>
++        </Switch>
++      </box>
++      <box
++        height={1}
++        backgroundColor={theme.backgroundPanel}
++        flexDirection="row"
++        justifyContent="space-between"
++        flexShrink={0}
++      >
++        <box flexDirection="row">
++          <box flexDirection="row" backgroundColor={theme.backgroundElement} paddingLeft={1} paddingRight={1}>
++            <text fg={theme.textMuted}>open</text>
++            <text fg={theme.text} attributes={TextAttributes.BOLD}>
++              code{" "}
++            </text>
++            <text fg={theme.textMuted}>v{Installation.VERSION}</text>
++          </box>
++          <box paddingLeft={1} paddingRight={1}>
++            <text fg={theme.textMuted}>
++              {process.cwd().replace(Global.Path.home, "~")}
++              {sync.data.vcs?.branch ? `:${sync.data.vcs.branch}` : ""}
++            </text>
++          </box>
++        </box>
++        <box flexDirection="row" flexShrink={0}>
++          <text fg={local.agent.color(local.agent.current().name)}>{"\ue0b2"}</text>
++          <text bg={local.agent.color(local.agent.current().name)} fg={theme.background} wrapMode={undefined}>
++            <span style={{ bold: true }}> {local.agent.current().name.toUpperCase()}</span>
++            <span> AGENT </span>
++          </text>
++        </box>
++      </box>
+     </box>
+   )
+ }
+diff --git a/packages/opencode/src/cli/cmd/tui/component/logo.tsx b/packages/opencode/src/cli/cmd/tui/component/logo.tsx
+index d1be06a7f..9a53d6571 100644
+--- a/packages/opencode/src/cli/cmd/tui/component/logo.tsx
++++ b/packages/opencode/src/cli/cmd/tui/component/logo.tsx
+@@ -1,24 +1,28 @@
+-import { TextAttributes } from "@opentui/core"
++import { TextAttributes, RGBA } from "@opentui/core"
+ import { For } from "solid-js"
+ import { useTheme } from "@tui/context/theme"
+ 
+-const LOGO_LEFT = [`                   `, `█▀▀█ █▀▀█ █▀▀█ █▀▀▄`, `█░░█ █░░█ █▀▀▀ █░░█`, `▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀`]
++// T7 TEAM Banner - color #a57c00
++const T7_COLOR = RGBA.fromInts(165, 124, 0)
+ 
+-const LOGO_RIGHT = [`             ▄     `, `█▀▀▀ █▀▀█ █▀▀█ █▀▀█`, `█░░░ █░░█ █░░█ █▀▀▀`, `▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀`]
++const LOGO = [
++  `▗▄▄▄▖ ▄▄▄▄▖  ▗▄▖  ▗▖  ▗▖ ▗▄▄▄▖`,
++  `  █         ▐▌ ▐▌ ▐▛▚▞▜▌    ▐▌`,
++  `  █   ▀▀▀▀▘ ▐   ▌ ▐▌  ▐▌   ▐▌`,
++  `  █   ▄▄▄▄▖ ▐▄▄▄▌ ▐▌  ▐▌   ▐▌`,
++]
+ 
+ export function Logo() {
+   const { theme } = useTheme()
++  void theme // keep for compatibility
+   return (
+     <box>
+-      <For each={LOGO_LEFT}>
+-        {(line, index) => (
+-          <box flexDirection="row" gap={1}>
+-            <text fg={theme.textMuted} selectable={false}>
++      <For each={LOGO}>
++        {(line) => (
++          <box flexDirection="row">
++            <text fg={T7_COLOR} attributes={TextAttributes.BOLD} selectable={false}>
+               {line}
+             </text>
+-            <text fg={theme.text} attributes={TextAttributes.BOLD} selectable={false}>
+-              {LOGO_RIGHT[index()]}
+-            </text>
+           </box>
+         )}
+       </For>
+diff --git a/packages/opencode/src/cli/ui.ts b/packages/opencode/src/cli/ui.ts
+index acd1383a0..fec1286db 100644
+--- a/packages/opencode/src/cli/ui.ts
++++ b/packages/opencode/src/cli/ui.ts
+@@ -3,11 +3,12 @@ import { EOL } from "os"
+ import { NamedError } from "@opencode-ai/util/error"
+ 
+ export namespace UI {
++  // T7 TEAM Banner
+   const LOGO = [
+-    [`                    `, `             ▄     `],
+-    [`█▀▀█ █▀▀█ █▀▀█ █▀▀▄ `, `█▀▀▀ █▀▀█ █▀▀█ █▀▀█`],
+-    [`█░░█ █░░█ █▀▀▀ █░░█ `, `█░░░ █░░█ █░░█ █▀▀▀`],
+-    [`▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ `, `▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀`],
++    `▗▄▄▄▖ ▄▄▄▄▖  ▗▄▖  ▗▖  ▗▖ ▗▄▄▄▖`,
++    `  █         ▐▌ ▐▌ ▐▛▚▞▜▌    ▐▌`,
++    `  █   ▀▀▀▀▘ ▐   ▌ ▐▌  ▐▌   ▐▌`,
++    `  █   ▄▄▄▄▖ ▐▄▄▄▌ ▐▌  ▐▌   ▐▌`,
+   ]
+ 
+   export const CancelledError = NamedError.create("UICancelledError", z.void())
+@@ -48,12 +49,14 @@ export namespace UI {
+ 
+   export function logo(pad?: string) {
+     const result = []
++    // T7 TEAM color: #a57c00 (RGB 165, 124, 0)
++    const t7color = "\x1b[38;2;165;124;0m"
++    const reset = "\x1b[0m"
+     for (const row of LOGO) {
+       if (pad) result.push(pad)
+-      result.push(Bun.color("gray", "ansi"))
+-      result.push(row[0])
+-      result.push("\x1b[0m")
+-      result.push(row[1])
++      result.push(t7color)
++      result.push(row)
++      result.push(reset)
+       result.push(EOL)
+     }
+     return result.join("").trimEnd()
