@@ -1,5 +1,5 @@
 diff --git a/packages/opencode/src/cli/cmd/tui/app.tsx b/packages/opencode/src/cli/cmd/tui/app.tsx
-index aa62c6c58..1f28ed9b4 100644
+index 1fea3f4b3..dc89302eb 100644
 --- a/packages/opencode/src/cli/cmd/tui/app.tsx
 +++ b/packages/opencode/src/cli/cmd/tui/app.tsx
 @@ -1,3 +1,4 @@
@@ -7,7 +7,7 @@ index aa62c6c58..1f28ed9b4 100644
  import { render, useKeyboard, useRenderer, useTerminalDimensions } from "@opentui/solid"
  import { Clipboard } from "@tui/util/clipboard"
  import { TextAttributes } from "@opentui/core"
-@@ -648,14 +649,46 @@ function App() {
+@@ -639,14 +640,46 @@ function App() {
          }
        }}
      >
@@ -63,10 +63,10 @@ index aa62c6c58..1f28ed9b4 100644
    )
  }
 diff --git a/packages/opencode/src/cli/cmd/tui/component/logo.tsx b/packages/opencode/src/cli/cmd/tui/component/logo.tsx
-index d1be06a7f..9a53d6571 100644
+index d1be06a7f..8d5f40630 100644
 --- a/packages/opencode/src/cli/cmd/tui/component/logo.tsx
 +++ b/packages/opencode/src/cli/cmd/tui/component/logo.tsx
-@@ -1,24 +1,28 @@
+@@ -1,24 +1,32 @@
 -import { TextAttributes } from "@opentui/core"
 +import { TextAttributes, RGBA } from "@opentui/core"
  import { For } from "solid-js"
@@ -78,10 +78,14 @@ index d1be06a7f..9a53d6571 100644
  
 -const LOGO_RIGHT = [`             ▄     `, `█▀▀▀ █▀▀█ █▀▀█ █▀▀█`, `█░░░ █░░█ █░░█ █▀▀▀`, `▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀`]
 +const LOGO = [
-+  `▗▄▄▄▖ ▄▄▄▄▖  ▗▄▖  ▗▖  ▗▖ ▗▄▄▄▖`,
-+  `  █         ▐▌ ▐▌ ▐▛▚▞▜▌    ▐▌`,
-+  `  █   ▀▀▀▀▘ ▐   ▌ ▐▌  ▐▌   ▐▌`,
-+  `  █   ▄▄▄▄▖ ▐▄▄▄▌ ▐▌  ▐▌   ▐▌`,
++  ` ------------- ============      #####       ****      ****   *++++++++++`,
++  `      ---                        ## ##       *****    ** **           +++`,
++  `      ---                       ##   ##      ** **#  #** **          +++`,
++  `      ---       ==========     ###   ###     **  **  **  **         *++`,
++  `      ---                      ##     ##     **   ****   **        *++`,
++  `      ---                     ##       ##    **    **    **       *++`,
++  `      ---                    ###       ###   **          **      *++`,
++  `      ---      ============  #############   **          **     +++`,
 +]
  
  export function Logo() {
@@ -106,10 +110,10 @@ index d1be06a7f..9a53d6571 100644
          )}
        </For>
 diff --git a/packages/opencode/src/cli/ui.ts b/packages/opencode/src/cli/ui.ts
-index acd1383a0..fec1286db 100644
+index acd1383a0..50aee4ed4 100644
 --- a/packages/opencode/src/cli/ui.ts
 +++ b/packages/opencode/src/cli/ui.ts
-@@ -3,11 +3,12 @@ import { EOL } from "os"
+@@ -3,11 +3,16 @@ import { EOL } from "os"
  import { NamedError } from "@opencode-ai/util/error"
  
  export namespace UI {
@@ -119,14 +123,18 @@ index acd1383a0..fec1286db 100644
 -    [`█▀▀█ █▀▀█ █▀▀█ █▀▀▄ `, `█▀▀▀ █▀▀█ █▀▀█ █▀▀█`],
 -    [`█░░█ █░░█ █▀▀▀ █░░█ `, `█░░░ █░░█ █░░█ █▀▀▀`],
 -    [`▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ `, `▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀`],
-+    `▗▄▄▄▖ ▄▄▄▄▖  ▗▄▖  ▗▖  ▗▖ ▗▄▄▄▖`,
-+    `  █         ▐▌ ▐▌ ▐▛▚▞▜▌    ▐▌`,
-+    `  █   ▀▀▀▀▘ ▐   ▌ ▐▌  ▐▌   ▐▌`,
-+    `  █   ▄▄▄▄▖ ▐▄▄▄▌ ▐▌  ▐▌   ▐▌`,
++    ` ------------- ============      #####       ****      ****   *++++++++++`,
++    `      ---                        ## ##       *****    ** **           +++`,
++    `      ---                       ##   ##      ** **#  #** **          +++`,
++    `      ---       ==========     ###   ###     **  **  **  **         *++`,
++    `      ---                      ##     ##     **   ****   **        *++`,
++    `      ---                     ##       ##    **    **    **       *++`,
++    `      ---                    ###       ###   **          **      *++`,
++    `      ---      ============  #############   **          **     +++`,
    ]
  
    export const CancelledError = NamedError.create("UICancelledError", z.void())
-@@ -48,12 +49,14 @@ export namespace UI {
+@@ -48,12 +53,14 @@ export namespace UI {
  
    export function logo(pad?: string) {
      const result = []
