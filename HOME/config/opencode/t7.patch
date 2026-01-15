@@ -63,57 +63,116 @@ index 1fea3f4b3..dc89302eb 100644
    )
  }
 diff --git a/packages/opencode/src/cli/cmd/tui/component/logo.tsx b/packages/opencode/src/cli/cmd/tui/component/logo.tsx
-index d1be06a7f..8d5f40630 100644
+index 771962b75..8fa99531b 100644
 --- a/packages/opencode/src/cli/cmd/tui/component/logo.tsx
 +++ b/packages/opencode/src/cli/cmd/tui/component/logo.tsx
-@@ -1,24 +1,32 @@
--import { TextAttributes } from "@opentui/core"
-+import { TextAttributes, RGBA } from "@opentui/core"
- import { For } from "solid-js"
- import { useTheme } from "@tui/context/theme"
+@@ -1,85 +1,27 @@
+ import { TextAttributes, RGBA } from "@opentui/core"
+-import { For, type JSX } from "solid-js"
+-import { useTheme, tint } from "@tui/context/theme"
++import { For } from "solid-js"
++import { useTheme } from "@tui/context/theme"
  
--const LOGO_LEFT = [`                   `, `█▀▀█ █▀▀█ █▀▀█ █▀▀▄`, `█░░█ █░░█ █▀▀▀ █░░█`, `▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀`]
+-// Shadow markers (rendered chars in parens):
+-// _ = full shadow cell (space with bg=shadow)
+-// ^ = letter top, shadow bottom (▀ with fg=letter, bg=shadow)
+-// ~ = shadow top only (▀ with fg=shadow)
+-const SHADOW_MARKER = /[_^~]/
 +// T7 TEAM Banner - color #a57c00
 +const T7_COLOR = RGBA.fromInts(165, 124, 0)
  
--const LOGO_RIGHT = [`             ▄     `, `█▀▀▀ █▀▀█ █▀▀█ █▀▀█`, `█░░░ █░░█ █░░█ █▀▀▀`, `▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀`]
+-const LOGO_LEFT = [`                   `, `█▀▀█ █▀▀█ █▀▀█ █▀▀▄`, `█__█ █__█ █^^^ █__█`, `▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀~~▀`]
+-
+-const LOGO_RIGHT = [`             ▄     `, `█▀▀▀ █▀▀█ █▀▀█ █▀▀█`, `█___ █__█ █__█ █^^^`, `▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀`]
 +const LOGO = [
-+  ` ------------- ============      #####       ****      ****   *++++++++++`,
-+  `      ---                        ## ##       *****    ** **           +++`,
-+  `      ---                       ##   ##      ** **#  #** **          +++`,
-+  `      ---       ==========     ###   ###     **  **  **  **         *++`,
-+  `      ---                      ##     ##     **   ****   **        *++`,
-+  `      ---                     ##       ##    **    **    **       *++`,
-+  `      ---                    ###       ###   **          **      *++`,
-+  `      ---      ============  #############   **          **     +++`,
++  ` ▄▄▄▄▄▄ ██████ `,
++  `   ██     ▄██▀ `,
++  `   ██    ██▀   `,
 +]
  
  export function Logo() {
    const { theme } = useTheme()
+-
+-  const renderLine = (line: string, fg: RGBA, bold: boolean): JSX.Element[] => {
+-    const shadow = tint(theme.background, fg, 0.25)
+-    const attrs = bold ? TextAttributes.BOLD : undefined
+-    const elements: JSX.Element[] = []
+-    let i = 0
+-
+-    while (i < line.length) {
+-      const rest = line.slice(i)
+-      const markerIndex = rest.search(SHADOW_MARKER)
+-
+-      if (markerIndex === -1) {
+-        elements.push(
+-          <text fg={fg} attributes={attrs} selectable={false}>
+-            {rest}
+-          </text>,
+-        )
+-        break
+-      }
+-
+-      if (markerIndex > 0) {
+-        elements.push(
+-          <text fg={fg} attributes={attrs} selectable={false}>
+-            {rest.slice(0, markerIndex)}
+-          </text>,
+-        )
+-      }
+-
+-      const marker = rest[markerIndex]
+-      switch (marker) {
+-        case "_":
+-          elements.push(
+-            <text fg={fg} bg={shadow} attributes={attrs} selectable={false}>
+-              {" "}
+-            </text>,
+-          )
+-          break
+-        case "^":
+-          elements.push(
+-            <text fg={fg} bg={shadow} attributes={attrs} selectable={false}>
+-              ▀
+-            </text>,
+-          )
+-          break
+-        case "~":
+-          elements.push(
+-            <text fg={shadow} attributes={attrs} selectable={false}>
+-              ▀
+-            </text>,
+-          )
+-          break
+-      }
+-
+-      i += markerIndex + 1
+-    }
+-
+-    return elements
+-  }
+-
 +  void theme // keep for compatibility
    return (
      <box>
 -      <For each={LOGO_LEFT}>
 -        {(line, index) => (
 -          <box flexDirection="row" gap={1}>
--            <text fg={theme.textMuted} selectable={false}>
+-            <box flexDirection="row">{renderLine(line, theme.textMuted, false)}</box>
+-            <box flexDirection="row">{renderLine(LOGO_RIGHT[index()], theme.text, true)}</box>
 +      <For each={LOGO}>
 +        {(line) => (
 +          <box flexDirection="row">
 +            <text fg={T7_COLOR} attributes={TextAttributes.BOLD} selectable={false}>
-               {line}
-             </text>
--            <text fg={theme.text} attributes={TextAttributes.BOLD} selectable={false}>
--              {LOGO_RIGHT[index()]}
--            </text>
++              {line}
++            </text>
            </box>
          )}
        </For>
 diff --git a/packages/opencode/src/cli/ui.ts b/packages/opencode/src/cli/ui.ts
-index acd1383a0..50aee4ed4 100644
+index acd1383a0..315593c10 100644
 --- a/packages/opencode/src/cli/ui.ts
 +++ b/packages/opencode/src/cli/ui.ts
-@@ -3,11 +3,16 @@ import { EOL } from "os"
+@@ -3,11 +3,9 @@ import { EOL } from "os"
  import { NamedError } from "@opencode-ai/util/error"
  
  export namespace UI {
@@ -123,18 +182,11 @@ index acd1383a0..50aee4ed4 100644
 -    [`█▀▀█ █▀▀█ █▀▀█ █▀▀▄ `, `█▀▀▀ █▀▀█ █▀▀█ █▀▀█`],
 -    [`█░░█ █░░█ █▀▀▀ █░░█ `, `█░░░ █░░█ █░░█ █▀▀▀`],
 -    [`▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ `, `▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀`],
-+    ` ------------- ============      #####       ****      ****   *++++++++++`,
-+    `      ---                        ## ##       *****    ** **           +++`,
-+    `      ---                       ##   ##      ** **#  #** **          +++`,
-+    `      ---       ==========     ###   ###     **  **  **  **         *++`,
-+    `      ---                      ##     ##     **   ****   **        *++`,
-+    `      ---                     ##       ##    **    **    **       *++`,
-+    `      ---                    ###       ###   **          **      *++`,
-+    `      ---      ============  #############   **          **     +++`,
++    `TEAM7 AGENT`,
    ]
  
    export const CancelledError = NamedError.create("UICancelledError", z.void())
-@@ -48,12 +53,14 @@ export namespace UI {
+@@ -48,12 +46,14 @@ export namespace UI {
  
    export function logo(pad?: string) {
      const result = []
