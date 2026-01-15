@@ -1,0 +1,3 @@
+export OPENCODE_VERSION=" team7"
+alias o="OPENCODE_EXPERIMENTAL=1 ~/.config/opencode/opencode/packages/opencode/dist/opencode-linux-arm64/bin/opencode"
+alias t7="o --agent team7"
