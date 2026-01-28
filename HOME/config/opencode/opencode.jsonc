@@ -28,7 +28,7 @@
       "mode": "subagent",
       "prompt": "{file:./agent/t7-recon-agent.md}",
       "temperature": 0.2,
-      "steps": 50,
+      "maxSteps": 50,
       "permission": {
         "bash": "allow",
         "write": "deny",
@@ -46,7 +46,7 @@
       "mode": "subagent",
       "prompt": "{file:./agent/t7-vuln-analysis-agent.md}",
       "temperature": 0.2,
-      "steps": 50,
+      "maxSteps": 50,
       "permission": {
         "bash": "allow",
         "write": "deny",
@@ -64,7 +64,7 @@
       "mode": "subagent",
       "prompt": "{file:./agent/t7-container-security-agent.md}",
       "temperature": 0.2,
-      "steps": 50,
+      "maxSteps": 50,
       "permission": {
         "bash": "allow",
         "write": "deny",
@@ -81,7 +81,7 @@
       "mode": "subagent",
       "prompt": "{file:./agent/t7-auth-bypass-agent.md}",
       "temperature": 0.2,
-      "steps": 50,
+      "maxSteps": 50,
       "permission": {
         "bash": "allow",
         "write": "deny",
@@ -98,7 +98,7 @@
       "mode": "subagent",
       "prompt": "{file:./agent/t7-dataflow-mapping-agent.md}",
       "temperature": 0.2,
-      "steps": 50,
+      "maxSteps": 50,
       "permission": {
         "bash": "allow",
         "write": "deny",
@@ -115,7 +115,7 @@
       "mode": "subagent",
       "prompt": "{file:./agent/t7-certificate-agent.md}",
       "temperature": 0.2,
-      "steps": 30,
+      "maxSteps": 30,
       "permission": {
         "bash": "allow",
         "write": "deny",
@@ -132,7 +132,7 @@
       "mode": "subagent",
       "prompt": "{file:./agent/t7-compliance-agent.md}",
       "temperature": 0.1,
-      "steps": 100,
+      "maxSteps": 100,
       "permission": {
         "bash": "allow",
         "edit": "deny",
@@ -152,7 +152,7 @@
       "mode": "subagent",
       "prompt": "{file:./agent/t7-exploitation-agent.md}",
       "temperature": 0.3,
-      "steps": 50,
+      "maxSteps": 50,
       "permission": {
         "bash": "allow",
         "write": "allow",
@@ -169,7 +169,7 @@
       "mode": "subagent",
       "prompt": "{file:./agent/t7-cloud-pivot-agent.md}",
       "temperature": 0.3,
-      "steps": 50,
+      "maxSteps": 50,
       "permission": {
         "bash": "allow",
         "webfetch": "allow",
@@ -187,7 +187,7 @@
       "mode": "subagent",
       "prompt": "{file:./agent/t7-reverse-tunnel-agent.md}",
       "temperature": 0.3,
-      "steps": 40,
+      "maxSteps": 40,
       "permission": {
         "bash": "allow",
         "write": "allow",
@@ -204,7 +204,7 @@
       "mode": "subagent",
       "prompt": "{file:./agent/t7-lateral-movement-agent.md}",
       "temperature": 0.3,
-      "steps": 50,
+      "maxSteps": 50,
       "permission": {
         "bash": "allow",
         "write": "deny",
@@ -221,7 +221,7 @@
       "mode": "subagent",
       "prompt": "{file:./agent/t7-persistence-agent.md}",
       "temperature": 0.2,
-      "steps": 40,
+      "maxSteps": 40,
       "permission": {
         "bash": "allow",
         "write": "deny",
@@ -241,7 +241,7 @@
       "mode": "subagent",
       "prompt": "{file:./agent/t7-data-exfiltration-agent.md}",
       "temperature": 0.3,
-      "steps": 40,
+      "maxSteps": 40,
       "permission": {
         "bash": "allow",
         "write": "deny",
@@ -261,7 +261,7 @@
       "mode": "subagent",
       "prompt": "{file:./agent/t7-social-engineering-agent.md}",
       "temperature": 0.4,
-      "steps": 30,
+      "maxSteps": 30,
       "permission": {
         "bash": "allow",
         "webfetch": "allow",
@@ -279,7 +279,7 @@
       "mode": "subagent",
       "prompt": "{file:./agent/t7-evidence-collection-agent.md}",
       "temperature": 0.1,
-      "steps": 50,
+      "maxSteps": 50,
       "permission": {
         "bash": "allow",
         "edit": "allow",
@@ -296,7 +296,7 @@
       "mode": "subagent",
       "prompt": "{file:./agent/t7-tools-arsenal-agent.md}",
       "temperature": 0.2,
-      "steps": 40,
+      "maxSteps": 40,
       "permission": {
         "bash": "allow",
         "webfetch": "allow",
@@ -310,11 +310,11 @@
     },
 
     "t7-report-generation-agent": {
-      "description": "Report generation, finding documentation, executive summaries, and FedRAMP deliverables",
+      "description": "Report generation, finding documentation, executive summaries, and formal deliverables",
       "mode": "subagent",
       "prompt": "{file:./agent/t7-report-generation-agent.md}",
       "temperature": 0.2,
-      "steps": 100,
+      "maxSteps": 100,
       "permission": {
         "bash": "allow",
         "edit": "allow",
@@ -334,7 +334,7 @@
       "mode": "subagent",
       "prompt": "{file:./agent/t7-bbhunter.md}",
       "temperature": 0.3,
-      "steps": 50,
+      "maxSteps": 50,
       "permission": {
         "bash": "allow",
         "webfetch": "allow",
@@ -352,7 +352,7 @@
       "mode": "subagent",
       "prompt": "{file:./agent/t7-malwareanalyst.md}",
       "temperature": 0.2,
-      "steps": 50,
+      "maxSteps": 50,
       "permission": {
         "bash": "allow",
         "write": "allow",
@@ -369,7 +369,7 @@
       "mode": "subagent",
       "prompt": "{file:./agent/t7-pentester.md}",
       "temperature": 0.3,
-      "steps": 50,
+      "maxSteps": 50,
       "permission": {
         "bash": "allow",
         "webfetch": "allow",
@@ -387,7 +387,7 @@
       "mode": "subagent",
       "prompt": "{file:./agent/t7-pentesterweb.md}",
       "temperature": 0.3,
-      "steps": 50,
+      "maxSteps": 50,
       "permission": {
         "bash": "allow",
         "webfetch": "allow",
@@ -405,7 +405,7 @@
       "mode": "subagent",
       "prompt": "{file:./agent/t7-redteamer.md}",
       "temperature": 0.3,
-      "steps": 50,
+      "maxSteps": 50,
       "permission": {
         "bash": "allow",
         "webfetch": "allow",
@@ -423,7 +423,7 @@
       "mode": "subagent",
       "prompt": "{file:./agent/t7-threathunter.md}",
       "temperature": 0.2,
-      "steps": 50,
+      "maxSteps": 50,
       "permission": {
         "bash": "allow",
         "webfetch": "allow",
@@ -441,7 +441,7 @@
       "mode": "subagent",
       "prompt": "{file:./agent/t7-reviewer.md}",
       "temperature": 0.2,
-      "steps": 30,
+      "maxSteps": 30,
       "permission": {
         "bash": "allow",
         "write": "deny",
@@ -461,7 +461,7 @@
       "mode": "subagent",
       "prompt": "{file:./agent/t7-code-review-agent.md}",
       "temperature": 0.2,
-      "steps": 50,
+      "maxSteps": 50,
       "permission": {
         "bash": "allow",
         "edit": "allow",
@@ -479,7 +479,7 @@
       "mode": "subagent",
       "prompt": "{file:./agent/t7-xss-specialist.md}",
       "temperature": 0.2,
-      "steps": 50,
+      "maxSteps": 50,
       "permission": {
         "bash": "allow",
         "edit": "allow",
@@ -497,7 +497,7 @@
       "mode": "subagent",
       "prompt": "{file:./agent/t7-injection-specialist.md}",
       "temperature": 0.2,
-      "steps": 50,
+      "maxSteps": 50,
       "permission": {
         "bash": "allow",
         "edit": "allow",
@@ -515,7 +515,7 @@
       "mode": "subagent",
       "prompt": "{file:./agent/t7-ssrf-specialist.md}",
       "temperature": 0.2,
-      "steps": 50,
+      "maxSteps": 50,
       "permission": {
         "bash": "allow",
         "edit": "allow",
@@ -525,6 +525,43 @@
         "grep": "allow",
         "list": "allow",
         "task": "allow"
+      }
+    },
+
+    "t7-smart-contract-auditor": {
+      "description": "Blockchain smart contract auditing, vulnerability scanning, and token integration analysis",
+      "mode": "subagent",
+      "prompt": "{file:./agent/t7-smart-contract-auditor.md}",
+      "temperature": 0.2,
+      "maxSteps": 50,
+      "permission": {
+        "bash": "allow",
+        "edit": "allow",
+        "write": "allow",
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "list": "allow",
+        "webfetch": "allow",
+        "skill": "allow"
+      }
+    },
+
+    "t7-fuzzing-specialist": {
+      "description": "Fuzzing campaign orchestration, harness generation, and coverage analysis",
+      "mode": "subagent",
+      "prompt": "{file:./agent/t7-fuzzing-specialist.md}",
+      "temperature": 0.2,
+      "maxSteps": 50,
+      "permission": {
+        "bash": "allow",
+        "edit": "allow",
+        "write": "allow",
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "list": "allow",
+        "skill": "allow"
       }
     }
   },

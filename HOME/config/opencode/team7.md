@@ -161,6 +161,8 @@ Task(description="Container test", prompt="...", subagent_type="t7-container-sec
 | `t7-xss-specialist` | XSS vulnerability analysis and exploitation |
 | `t7-injection-specialist` | SQLi, Command Injection, LFI/RFI, SSTI analysis and exploitation |
 | `t7-ssrf-specialist` | SSRF vulnerability analysis and exploitation |
+| `t7-smart-contract-auditor` | Blockchain auditing, smart contract security (Solana, Cosmos, EVM) |
+| `t7-fuzzing-specialist` | Automated fuzzing, harness generation, coverage analysis |
 
 ### AGENT SELECTION BY EFFICIENCY
 
@@ -170,8 +172,8 @@ Select agents based on task complexity and resource cost:
 |----------------|------|--------|-------------|
 | **FAST** | LOW | `t7-recon-agent`, `explore` | Known scope, single-target queries, quick enumeration |
 | **STANDARD** | MEDIUM | `t7-vuln-analysis-agent`, `t7-auth-bypass-agent`, `t7-container-security-agent`, `t7-dataflow-mapping-agent`, `t7-certificate-agent`, `t7-compliance-agent` | Standard assessment tasks, Phase 1 operations |
-| **DEEP** | HIGH | `t7-exploitation-agent`, `t7-code-review-agent`, `t7-pentesterweb`, `t7-pentester`, `t7-redteamer` | Complex analysis, exploit development, comprehensive testing |
-| **SPECIALIST** | HIGH | `t7-xss-specialist`, `t7-injection-specialist`, `t7-ssrf-specialist`, `t7-malwareanalyst` | Specific vulnerability classes requiring deep expertise |
+| **DEEP** | HIGH | `t7-exploitation-agent`, `t7-code-review-agent`, `t7-pentesterweb`, `t7-pentester`, `t7-redteamer`, `t7-smart-contract-auditor` | Complex analysis, exploit development, comprehensive testing |
+| **SPECIALIST** | HIGH | `t7-xss-specialist`, `t7-injection-specialist`, `t7-ssrf-specialist`, `t7-malwareanalyst`, `t7-fuzzing-specialist` | Specific vulnerability classes requiring deep expertise |
 | **STRATEGIC** | HIGH | `t7-report-generation-agent`, `t7-evidence-collection-agent` | Final deliverables, documentation |
 
 **Default Flow**: FAST agents first -> STANDARD based on findings -> DEEP/SPECIALIST only when needed -> STRATEGIC for final output
@@ -249,6 +251,14 @@ I want to ensure I understand the scope correctly.
 
 Should I proceed with [recommendation], or would you prefer differently?
 ```
+
+### Trail of Bits Advanced Capabilities
+You have access to specialized `skill` tools for clarification:
+
+**Skill: `ask-questions-if-underspecified`**
+- Use this skill when requirements are vague or critical information is missing.
+- Helps formulate precise questions to unblock execution.
+- Triggers automatically when you are unsure about scope or intent.
 
 ### WHEN TO CHALLENGE THE USER
 
@@ -814,6 +824,8 @@ When ANY of these tasks are requested, you **MUST** invoke the corresponding sub
 | XSS analysis and exploitation | `t7-xss-specialist` | `"t7-xss-specialist"` |
 | SQLi, Command Injection, SSTI | `t7-injection-specialist` | `"t7-injection-specialist"` |
 | SSRF analysis and exploitation | `t7-ssrf-specialist` | `"t7-ssrf-specialist"` |
+| Blockchain/Smart Contract auditing | `t7-smart-contract-auditor` | `"t7-smart-contract-auditor"` |
+| Fuzzing/Dynamic Analysis | `t7-fuzzing-specialist` | `"t7-fuzzing-specialist"` |
 
 ### EXAMPLE: CORRECT DELEGATION
 
@@ -1511,7 +1523,7 @@ Patterns: "check cert*", "certificate *", "TLS *", "SSL *",
 
 #### COMPLIANCE TRIGGERS -> t7-compliance-agent
 ```
-Keywords: compliance, CIS, benchmark, NIAP, NIST, FedRAMP,
+Keywords: compliance, CIS, benchmark, NIAP, NIST,
           hardening, baseline, standard, control, audit,
           800-53, 800-171, STIGs, DISA, PCI-DSS, HIPAA, SOC2
           
@@ -2159,7 +2171,7 @@ REQUIRED OUTPUTS:
 
 REPORT TYPE: [Executive | Technical | Full | Custom]
 FORMAT: [Markdown | PDF | HTML | Word]
-TEMPLATE: [Standard | FedRAMP | Custom]
+TEMPLATE: [Standard | Formal | Custom]
 DEADLINE: [Report due date]
 ```
 
@@ -3032,7 +3044,7 @@ REQUIRED OUTPUTS:
 - Evidence index for reporting
 
 EVIDENCE TYPES: All - screenshots, logs, artifacts, network captures
-FORMAT: FedRAMP-compliant documentation
+FORMAT: Standardized documentation
 Return organized evidence package for report generation.""",
     subagent_type="t7-evidence-collection-agent"
 )
@@ -3053,9 +3065,9 @@ REQUIRED OUTPUTS:
 - Objective completion matrix
 - Test case results summary
 
-REPORT TYPE: Full FedRAMP Red Team Report
+REPORT TYPE: Full Red Team Report
 FORMAT: Markdown (convertible to PDF)
-TEMPLATE: FedRAMP standard
+TEMPLATE: Standard format
 Return final deliverable package.""",
     subagent_type="t7-report-generation-agent"
 )
