@@ -1,19 +1,3 @@
----
-description: Server-Side Request Forgery (SSRF) vulnerability analysis and exploitation
-  specialist
-mode: subagent
-temperature: 0.2
-permission:
-  bash: allow
-  edit: allow
-  write: allow
-  read: allow
-  glob: allow
-  grep: allow
-  list: allow
-  task: allow
-steps: 50
----
 
 # SSRF Specialist Agent (t7-ssrf-specialist)
 

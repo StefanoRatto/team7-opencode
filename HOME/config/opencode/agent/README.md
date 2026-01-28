@@ -1,10 +1,10 @@
 # team7 Sub-Agents Index
 
-> **Complete listing of all team7 sub-agents for the FedRAMP Red Team Exercise**
+> **Complete listing of all team7 sub-agents for the Red Team Exercise**
 
 ## Agent Overview
 
-This directory contains all specialized sub-agents that support the team7 primary agent in executing the FedRAMP Red Team Exercise Test Plan.
+This directory contains all specialized sub-agents that support the team7 primary agent in executing the Red Team Exercise Test Plan.
 
 ## Agent Inventory
 
@@ -64,6 +64,7 @@ The primary orchestration agent is defined at:
 | `t7-redteamer.md` | Red Team Operator | World class red team operations |
 | `t7-threathunter.md` | Threat Hunter | World class threat hunting |
 | `t7-reviewer.md` | Code Reviewer | Security-focused code review |
+| `t7-code-review-agent.md` | White-Box Analyst | Static analysis and attack surface mapping |
 
 ### Vulnerability Specialists
 
@@ -72,6 +73,13 @@ The primary orchestration agent is defined at:
 | `t7-xss-specialist.md` | XSS Vulnerability Specialist | XSS analysis and exploitation (Reflected, Stored, DOM) | Analysis, Exploitation |
 | `t7-injection-specialist.md` | Injection Vulnerability Specialist | SQLi, Command Injection, SSTI, LFI, RFI analysis | Analysis, Exploitation |
 | `t7-ssrf-specialist.md` | SSRF Vulnerability Specialist | SSRF analysis and internal service access | Analysis, Exploitation |
+
+### Trail of Bits Advanced Capabilities
+
+| Agent File | Description | Purpose | Key Skills |
+|------------|-------------|---------|------------|
+| `t7-smart-contract-auditor.md` | Blockchain Security Specialist | Smart contract auditing (Solana, Cosmos, Substrate) | `solana-vuln-scanner`, `token-integration-analyzer` |
+| `t7-fuzzing-specialist.md` | Fuzzing Specialist | Automated fuzzing and harness generation | `libfuzzer`, `aflpp`, `harness-writing`, `cargo-fuzz` |
 
 ## Test Case Coverage
 
@@ -265,7 +273,7 @@ team7 sub-agents integrate oh-my-opencode design patterns for consistent agent b
 **Evidence Collection Pattern (t7-evidence-collection-agent)**
 - Chain of Custody: Timestamps, hashes, collector attribution
 - Structured Evidence: Screenshots, logs, artifacts, network captures
-- Preservable Format: FedRAMP-compliant documentation structure
+- Preservable Format: Standardized documentation structure
 
 ### Pattern Enforcement
 
@@ -342,10 +350,12 @@ These queue files are consumed during the EXPLOITATION phase to execute targeted
 ## Version Information
 
 - **Version**: Current (updated with oh-my-opencode patterns integration)
-- **FedRAMP Test Plan Version**: Latest
+- **Test Plan Version**: Latest
 - **Assessment Period**: As defined in engagement scope
 
 ### Recent Updates
+- Added Trail of Bits Advanced Capabilities (Blockchain, Fuzzing)
+- Integrated `skill` tool access for specialized agents
 - Added Vulnerability Specialists section (XSS, Injection, SSRF)
 - Integrated oh-my-opencode design patterns across all agents
 - Added two-phase vulnerability specialist workflow (Analysis + Exploitation)

@@ -1,18 +1,3 @@
----
-description: Container escape testing, Docker/containerd security, namespace isolation,
-  and image security (TC-001 to TC-007)
-mode: subagent
-temperature: 0.2
-permission:
-  bash: allow
-  edit: deny
-  write: deny
-  read: allow
-  glob: allow
-  grep: allow
-  list: allow
-steps: 50
----
 
 # Container Security Agent
 
@@ -89,7 +74,7 @@ You are the **Container Security Agent**, a specialized sub-agent of team7 focus
 
 ## Primary Objectives
 
-Based on the FedRAMP Red Team Exercise Test Plan:
+Based on the Red Team Exercise Test Plan:
 
 1. **Test container isolation and escape vectors**
 2. **Verify namespace and cgroup enforcement**

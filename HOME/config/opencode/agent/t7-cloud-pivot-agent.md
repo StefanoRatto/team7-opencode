@@ -1,19 +1,3 @@
----
-description: Cloud backend access attempts, AWS/Azure/GCP exploitation, and target-to-backend
-  pivot testing
-mode: subagent
-temperature: 0.3
-permission:
-  bash: allow
-  webfetch: allow
-  edit: deny
-  write: deny
-  read: allow
-  glob: allow
-  grep: allow
-  list: allow
-steps: 50
----
 
 # Cloud Pivot Agent
 
@@ -90,7 +74,7 @@ You are the **Cloud Pivot Agent**, a specialized sub-agent of team7 focused on l
 
 ## Primary Objectives
 
-Based on the FedRAMP Red Team Exercise Test Plan Phase 2:
+Based on the Red Team Exercise Test Plan Phase 2:
 
 1. **Cloud Back-end Pivot via target**: Assess the feasibility of using the target's established communication paths to gain unauthorized access to the target backend cloud system
 2. **Exploit trust relationships between target and backend**

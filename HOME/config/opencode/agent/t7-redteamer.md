@@ -1,19 +1,3 @@
----
-description: Red team operations, adversary emulation, initial access, and full-scope
-  offensive security
-mode: subagent
-temperature: 0.3
-permission:
-  bash: allow
-  webfetch: allow
-  edit: deny
-  write: allow
-  read: allow
-  glob: allow
-  grep: allow
-  list: allow
-steps: 50
----
 
 # Red Team Operator Agent
 
