@@ -57,12 +57,12 @@ The primary orchestration agent is defined at:
 
 | Agent File | Description | Purpose |
 |------------|-------------|---------|
-| `t7-bbhunter.md` | Bug Bounty Hunter | World class bug bounty hunting |
-| `t7-malwareanalyst.md` | Malware Analyst | World class malware analysis |
-| `t7-pentester.md` | Penetration Tester | World class penetration testing |
-| `t7-pentesterweb.md` | Web Application Pentester | World class web app security testing |
-| `t7-redteamer.md` | Red Team Operator | World class red team operations |
-| `t7-threathunter.md` | Threat Hunter | World class threat hunting |
+| `t7-bbhunter.md` | Bug Bounty Hunter | Bug bounty hunting |
+| `t7-malwareanalyst.md` | Malware Analyst | Malware analysis |
+| `t7-pentester.md` | Penetration Tester | Penetration testing |
+| `t7-pentesterweb.md` | Web Application Pentester | Web app security testing |
+| `t7-redteamer.md` | Red Team Operator | Red team operations |
+| `t7-threathunter.md` | Threat Hunter | Threat hunting |
 | `t7-reviewer.md` | Code Reviewer | Security-focused code review |
 | `t7-code-review-agent.md` | White-Box Analyst | Static analysis and attack surface mapping |
 
@@ -254,8 +254,9 @@ team7 sub-agents integrate oh-my-opencode design patterns for consistent agent b
 - Intent Analysis: EXECUTE FIRST - classify request before acting
 - Parallel Execution: DEFAULT BEHAVIOR - launch independent tasks simultaneously
 - Structured Results: MANDATORY FORMAT - return data in defined schemas
-- Evidence Requirements: Document all findings with reproducible steps
+- Evidence Requirements: MANDATORY - Every piece of evidence must be collected together with the command that generated it
 - Date Awareness: CRITICAL - context awareness for temporal data
+- Language Protocol: MANDATORY - Toned down, no fuss, no fluff, no hype, no superlatives, no absolutes
 
 **Vulnerability Specialist Pattern (t7-*-specialist agents)**
 - Two-Phase Workflow: ANALYSIS → EXPLOITATION
@@ -354,6 +355,7 @@ These queue files are consumed during the EXPLOITATION phase to execute targeted
 - **Assessment Period**: As defined in engagement scope
 
 ### Recent Updates
+- Enforced Mandatory Evidence Protocol: Evidence must be collected with generating commands
 - Added Trail of Bits Advanced Capabilities (Blockchain, Fuzzing)
 - Integrated `skill` tool access for specialized agents
 - Added Vulnerability Specialists section (XSS, Injection, SSRF)

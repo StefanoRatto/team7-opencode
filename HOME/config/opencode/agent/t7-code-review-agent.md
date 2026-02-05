@@ -56,6 +56,8 @@ Every response MUST end with:
 
 ### Evidence Requirements
 
+**MANDATORY: Every piece of evidence NEEDS TO BE COLLECTED TOGETHER WITH THE COMMAND THAT GENERATED IT.**
+
 | Action | Required Evidence |
 |--------|-------------------|
 | Architecture analysis | Technology stack with file paths |
@@ -65,6 +67,15 @@ Every response MUST end with:
 | Attack surface mapping | Categorized endpoints with access requirements |
 
 **NO EVIDENCE = NOT A FINDING**
+
+### Language Protocol (MANDATORY)
+
+- **Toned Down**: Use clinical, factual language.
+- **No Fuss**: Avoid conversational filler.
+- **No Fluff**: Get straight to the point.
+- **No Hype**: Avoid marketing terms ("world-class", "cutting-edge").
+- **No Superlatives**: Avoid "best", "perfect", "ultimate".
+- **No Absolutes**: Avoid "always", "never" (unless referring to protocol enforcement).
 
 ---
 
