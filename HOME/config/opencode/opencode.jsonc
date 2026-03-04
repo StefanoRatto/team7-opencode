@@ -2,12 +2,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "autoupdate": false,
-  "tui": {
-    "scroll_speed": 3,
-    "scroll_acceleration": {
-      "enabled": true
-    }
-  },
   "agent": {
     // ============================================================
     // PRIMARY AGENTS
@@ -563,6 +557,23 @@
         "list": "allow",
         "skill": "allow"
       }
+    },
+
+    "t7-static-analysis-agent": {
+      "description": "Static analysis specialist - CodeQL, Semgrep, and SARIF processing",
+      "mode": "subagent",
+      "prompt": "{file:./agent/t7-static-analysis-agent.md}",
+      "temperature": 0.2,
+      "maxSteps": 50,
+      "permission": {
+        "bash": "allow",
+        "write": "deny",
+        "edit": "deny",
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "list": "allow"
+      }
     }
   },
   "mcp": {
@@ -573,7 +584,6 @@
         "CONTEXT7_API_KEY": "{env:ctx7sk-2750220a-7487-4e9e-8cd3-433188ec5af5}"
       }
     }
-  },
-  "theme": "team7-catppuccin"
+  }
   //"theme": "team7-tokyonight"
 }
