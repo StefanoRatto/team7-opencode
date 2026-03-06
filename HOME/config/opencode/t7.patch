@@ -198,7 +198,7 @@ diff --git a/packages/opencode/src/cli/ui.ts b/packages/opencode/src/cli/ui.ts
 +    const t7color = "\x1b[38;2;165;124;0m"
      const reset = "\x1b[0m"
 -    const left = {
--      fg: Bun.color("gray", "ansi") ?? "",
+-      fg: "\x1b[90m",
 -      shadow: "\x1b[38;5;235m",
 -      bg: "\x1b[48;5;235m",
 -    }
