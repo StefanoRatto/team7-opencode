@@ -17,6 +17,43 @@
     // ============================================================
     // T7 SUB-AGENTS: Phase 1 - Reconnaissance & Analysis
     // ============================================================
+
+    "t7-planner-agent": {
+      "description": "Engagement planning, scope definition, interview-mode strategic planning before execution",
+      "mode": "subagent",
+      "prompt": "{file:./agent/t7-planner-agent.md}",
+      "temperature": 0.3,
+      "maxSteps": 50,
+      "permission": {
+        "bash": "deny",
+        "write": "allow",
+        "edit": "allow",
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "list": "allow",
+        "webfetch": "allow"
+      }
+    },
+
+    "t7-oracle-agent": {
+      "description": "Read-only security architecture consultation, attack path analysis, and strategic decision support",
+      "mode": "subagent",
+      "prompt": "{file:./agent/t7-oracle-agent.md}",
+      "temperature": 0.2,
+      "maxSteps": 30,
+      "permission": {
+        "bash": "allow",
+        "write": "deny",
+        "edit": "deny",
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "list": "allow",
+        "webfetch": "allow"
+      }
+    },
+
     "t7-recon-agent": {
       "description": "Deep system reconnaissance, OSINT, network enumeration, and attack surface mapping",
       "mode": "subagent",
@@ -316,7 +353,8 @@
         "read": "allow",
         "glob": "allow",
         "grep": "allow",
-        "list": "allow"
+        "list": "allow",
+        "webfetch": "allow"
       }
     },
 
@@ -574,7 +612,33 @@
         "grep": "allow",
         "list": "allow"
       }
-    }
+    },
+
+    "t7-investigator-agent": {
+      "description": "Systematic root-cause investigation, hypothesis testing, and failure analysis for security findings",
+      "mode": "subagent",
+      "prompt": "{file:./agent/t7-investigator-agent.md}",
+      "temperature": 0.2,
+      "maxSteps": 50,
+      "permission": {
+        "bash": "allow",
+        "write": "allow",
+        "edit": "allow",
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "list": "allow",
+        "webfetch": "allow"
+      }
+    },
+    // ============================================================
+    // BUILT-IN AGENTS: All built-in agents are disabled by default
+    // ============================================================
+    "build":   { "disable": true },
+    "plan":    { "disable": true },
+    "general": { "disable": true },
+    "doc":     { "disable": true },
+    "README":  { "disable": true }
   },
   "mcp": {
     "context7": {

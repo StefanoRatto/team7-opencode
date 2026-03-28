@@ -1,0 +1,15 @@
+#OPENCODE_VERSION=" team7" ./packages/opencode/script/build.ts --single
+alias ll='ls -alh'
+alias la='ls -A'
+alias l='ls -CF'
+alias rm='trash -v'  # use trash-cli to move files to trash instead of deleting them
+#alias rm='rm -i'  # prompt before removing files
+alias cp='cp -i'  # prompt before overwriting files
+alias mv='mv -i'  # prompt before overwriting files
+alias python='python3'
+alias nano="nano -l"
+alias nvim="~/tools/nvim/bin/nvim"
+alias v="~/tools/nvim/bin/nvim"
+alias o="OPENCODE_EXPERIMENTAL=1 opencode"
+export OPENCODE_VERSION=" team7"
+alias t7="OPENCODE_EXPERIMENTAL=1 ~/.config/opencode/opencode/packages/opencode/dist/opencode-linux-x64/bin/opencode"

@@ -1,89 +1,43 @@
-diff --git a/packages/opencode/src/cli/cmd/tui/app.tsx b/packages/opencode/src/cli/cmd/tui/app.tsx
---- a/packages/opencode/src/cli/cmd/tui/app.tsx
-+++ b/packages/opencode/src/cli/cmd/tui/app.tsx
-@@ -1 +1,2 @@
-+import { useDirectory } from "@tui/context/directory"
- import { render, useKeyboard, useRenderer, useTerminalDimensions } from "@opentui/solid"
-@@ -212,2 +213,3 @@ function App() {
-   const promptRef = usePromptRef()
-+  const directory = useDirectory()
+diff --git a/packages/opencode/src/cli/logo.ts b/packages/opencode/src/cli/logo.ts
+--- a/packages/opencode/src/cli/logo.ts
++++ b/packages/opencode/src/cli/logo.ts
+@@ -1,6 +1,15 @@
+ export const logo = {
+-  left: ["                   ", "█▀▀█ █▀▀█ █▀▀█ █▀▀▄", "█__█ █__█ █^^^ █__█", "▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀~~▀"],
+-  right: ["             ▄     ", "█▀▀▀ █▀▀█ █▀▀█ █▀▀█", "█___ █__█ █__█ █^^^", "▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀"],
++  left: [
++    "-------------  ============       ###        ****      ****   *+++++++++++",
++    "     ---                         ## ##       *****    ** **           +++",
++    "     ---                        ##   ##      ** **#  #** **          +++",
++    "     ---        ==========     ###   ###     **  **  **  **         *++",
++    "     ---                       ##     ##     **   ****   **        *++",
++    "     ---                      ##       ##    **    **    **       *++",
++    "     ---                     ###       ###   **          **      *++",
++    "     ---       ============  #############   **          **     +++",
++  ],
++  right: [],
+ }
  
-@@ -746,10 +748,39 @@ function App() {
-     >
--      <Switch>
--        <Match when={route.data.type === "home"}>
--          <Home />
--        </Match>
--        <Match when={route.data.type === "session"}>
--          <Session />
--        </Match>
--      </Switch>
-+      <box flexDirection="column" flexGrow={1}>
-+        <Switch>
-+          <Match when={route.data.type === "home"}>
-+            <Home />
-+          </Match>
-+          <Match when={route.data.type === "session"}>
-+            <Session />
-+          </Match>
-+        </Switch>
-+      </box>
-+      <box
-+        height={1}
-+        backgroundColor={theme.backgroundPanel}
-+        flexDirection="row"
-+        justifyContent="space-between"
-+        flexShrink={0}
-+      >
-+        <box flexDirection="row">
-+          <box flexDirection="row" backgroundColor={theme.backgroundElement} paddingLeft={1} paddingRight={1}>
-+            <text fg={theme.textMuted}>open</text>
-+            <text fg={theme.text} attributes={TextAttributes.BOLD}>
-+              code{" "}
-+            </text>
-+            <text fg={theme.textMuted}>v{Installation.VERSION}</text>
-+          </box>
-+          <box paddingLeft={1} paddingRight={1}>
-+            <text fg={theme.textMuted}>{directory()}</text>
-+          </box>
-+        </box>
-+        <box flexDirection="row" flexShrink={0}>
-+          <text fg={local.agent.color(local.agent.current().name)}>{"\ue0b2"}</text>
-+          <text bg={local.agent.color(local.agent.current().name)} fg={theme.background} wrapMode={undefined}>
-+            <span style={{ bold: true }}> {local.agent.current().name.toUpperCase()}</span>
-+            <span> AGENT </span>
-+          </text>
-+        </box>
-+      </box>
-     </box>
+-export const marks = "_^~"
++export const marks = ""
 
 diff --git a/packages/opencode/src/cli/cmd/tui/component/logo.tsx b/packages/opencode/src/cli/cmd/tui/component/logo.tsx
 --- a/packages/opencode/src/cli/cmd/tui/component/logo.tsx
 +++ b/packages/opencode/src/cli/cmd/tui/component/logo.tsx
-@@ -1,85 +1,30 @@
+@@ -1,85 +1,23 @@
  import { TextAttributes, RGBA } from "@opentui/core"
 -import { For, type JSX } from "solid-js"
 -import { useTheme, tint } from "@tui/context/theme"
 -import { logo, marks } from "@/cli/logo"
-+import { For } from "solid-js"
-+import { useTheme } from "@tui/context/theme"
- 
+-
 -// Shadow markers (rendered chars in parens):
 -// _ = full shadow cell (space with bg=shadow)
 -// ^ = letter top, shadow bottom (▀ with fg=letter, bg=shadow)
 -// ~ = shadow top only (▀ with fg=shadow)
 -const SHADOW_MARKER = new RegExp(`[${marks}]`)
-+// T7 TEAM Banner - color #a57c00
-+const T7_COLOR = RGBA.fromInts(165, 124, 0)
-+
-+const LOGO = [
-+  ` ▄▄▄▄▄▄ ██████ `,
-+  `   ██     ▄██▀ `,
-+  `   ██    ██▀   `,
-+]
- 
- export function Logo() {
-   const { theme } = useTheme()
+-
+-export function Logo() {
+-  const { theme } = useTheme()
 -
 -  const renderLine = (line: string, fg: RGBA, bold: boolean): JSX.Element[] => {
 -    const shadow = tint(theme.background, fg, 0.25)
@@ -143,7 +97,14 @@ diff --git a/packages/opencode/src/cli/cmd/tui/component/logo.tsx b/packages/ope
 -    return elements
 -  }
 -
-+  void theme // keep for compatibility
++import { For } from "solid-js"
++import { useTheme } from "@tui/context/theme"
++import { logo } from "@/cli/logo"
++
++const T7_COLOR = RGBA.fromInts(165, 124, 0)
++
++export function Logo() {
++  useTheme()
    return (
      <box>
 -      <For each={logo.left}>
@@ -151,7 +112,7 @@ diff --git a/packages/opencode/src/cli/cmd/tui/component/logo.tsx b/packages/ope
 -          <box flexDirection="row" gap={1}>
 -            <box flexDirection="row">{renderLine(line, theme.textMuted, false)}</box>
 -            <box flexDirection="row">{renderLine(logo.right[index()], theme.text, true)}</box>
-+      <For each={LOGO}>
++      <For each={logo.left}>
 +        {(line) => (
 +          <box flexDirection="row">
 +            <text fg={T7_COLOR} attributes={TextAttributes.BOLD} selectable={false}>
@@ -164,22 +125,6 @@ diff --git a/packages/opencode/src/cli/cmd/tui/component/logo.tsx b/packages/ope
    )
  }
 
-diff --git a/packages/opencode/src/cli/logo.ts b/packages/opencode/src/cli/logo.ts
---- a/packages/opencode/src/cli/logo.ts
-+++ b/packages/opencode/src/cli/logo.ts
-@@ -1,6 +1,8 @@
-+// T7 TEAM Banner - custom branding
- export const logo = {
--  left: ["                   ", "█▀▀█ █▀▀█ █▀▀█ █▀▀▄", "█__█ █__█ █^^^ █__█", "▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀~~▀"],
--  right: ["             ▄     ", "█▀▀▀ █▀▀█ █▀▀█ █▀▀█", "█___ █__█ █__█ █^^^", "▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀"],
-+  left: [" ▄▄▄▄▄▄ ██████ ", "   ██     ▄██▀ ", "   ██    ██▀   "],
-+  right: ["", "", ""],
- }
- 
--export const marks = "_^~"
-+// No shadow markers needed for T7 logo
-+export const marks = ""
-
 diff --git a/packages/opencode/src/cli/ui.ts b/packages/opencode/src/cli/ui.ts
 --- a/packages/opencode/src/cli/ui.ts
 +++ b/packages/opencode/src/cli/ui.ts
@@ -187,16 +132,10 @@ diff --git a/packages/opencode/src/cli/ui.ts b/packages/opencode/src/cli/ui.ts
  import { NamedError } from "@opencode-ai/util/error"
 -import { logo as glyphs } from "./logo"
  
-@@ -42,47 +41,17 @@ export namespace UI {
- 
-+  // T7 TEAM Banner - custom branding
-+  const T7_LOGO = [`TEAM7 AGENT`]
-+
+@@ -43,47 +42,3 @@ export namespace UI {
    export function logo(pad?: string) {
-     const result: string[] = []
-+    // T7 TEAM color: #a57c00 (RGB 165, 124, 0)
-+    const t7color = "\x1b[38;2;165;124;0m"
-     const reset = "\x1b[0m"
+-    const result: string[] = []
+-    const reset = "\x1b[0m"
 -    const left = {
 -      fg: "\x1b[90m",
 -      shadow: "\x1b[38;5;235m",
@@ -232,16 +171,81 @@ diff --git a/packages/opencode/src/cli/ui.ts b/packages/opencode/src/cli/ui.ts
 -      return parts.join("")
 -    }
 -    glyphs.left.forEach((row, index) => {
-+    for (const row of T7_LOGO) {
-       if (pad) result.push(pad)
+-      if (pad) result.push(pad)
 -      result.push(draw(row, left.fg, left.shadow, left.bg))
 -      result.push(gap)
 -      const other = glyphs.right[index] ?? ""
 -      result.push(draw(other, right.fg, right.shadow, right.bg))
-+      result.push(t7color)
-+      result.push(row)
-+      result.push(reset)
-       result.push(EOL)
+-      result.push(EOL)
 -    })
-+    }
-     return result.join("").trimEnd()
+-    return result.join("").trimEnd()
++    return (pad ?? "") + "\x1b[1m\x1b[38;2;165;124;0mteam7\x1b[0m Agent"
+   }
+
+diff --git a/packages/opencode/src/cli/cmd/tui/app.tsx b/packages/opencode/src/cli/cmd/tui/app.tsx
+--- a/packages/opencode/src/cli/cmd/tui/app.tsx
++++ b/packages/opencode/src/cli/cmd/tui/app.tsx
+@@ -1,5 +1,7 @@
++import { useDirectory } from "@tui/context/directory"
+ import { render, TimeToFirstDraw, useKeyboard, useRenderer, useTerminalDimensions } from "@opentui/solid"
+ import { Clipboard } from "@tui/util/clipboard"
+ import { Selection } from "@tui/util/selection"
+-import { createCliRenderer, MouseButton, type CliRendererConfig } from "@opentui/core"
++import { createCliRenderer, MouseButton, TextAttributes, type CliRendererConfig } from "@opentui/core"
++import { Installation } from "@/installation"
+ import { RouteProvider, useRoute } from "@tui/context/route"
+@@ -261,5 +263,6 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
+   const { theme, mode, setMode, locked, lock, unlock } = themeState
+   const sync = useSync()
+   const exit = useExit()
+   const promptRef = usePromptRef()
++  const directory = useDirectory()
+   const routes: RouteMap = new Map()
+@@ -885,10 +888,39 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
+       <Show when={ready()}>
+-        <Switch>
+-          <Match when={route.data.type === "home"}>
+-            <Home />
+-          </Match>
+-          <Match when={route.data.type === "session"}>
+-            <Session />
+-          </Match>
+-        </Switch>
++        <box flexDirection="column" flexGrow={1}>
++          <Switch>
++            <Match when={route.data.type === "home"}>
++              <Home />
++            </Match>
++            <Match when={route.data.type === "session"}>
++              <Session />
++            </Match>
++          </Switch>
++        </box>
++        <box
++          height={1}
++          backgroundColor={theme.backgroundPanel}
++          flexDirection="row"
++          justifyContent="space-between"
++          flexShrink={0}
++        >
++          <box flexDirection="row">
++            <box flexDirection="row" backgroundColor={theme.backgroundElement} paddingLeft={1} paddingRight={1}>
++              <text fg={theme.textMuted}>open</text>
++              <text fg={theme.text} attributes={TextAttributes.BOLD}>
++                code{" "}
++              </text>
++              <text fg={theme.textMuted}>v{Installation.VERSION}</text>
++            </box>
++            <box paddingLeft={1} paddingRight={1}>
++              <text fg={theme.textMuted}>{directory()}</text>
++            </box>
++          </box>
++          <box flexDirection="row" flexShrink={0}>
++            <text fg={local.agent.color(local.agent.current().name)}>{"\ue0b2"}</text>
++            <text bg={local.agent.color(local.agent.current().name)} fg={theme.background} wrapMode={undefined}>
++              <span style={{ bold: true }}> {local.agent.current().name.toUpperCase()}</span>
++              <span> AGENT </span>
++            </text>
++          </box>
++        </box>
+       </Show>
