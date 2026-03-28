@@ -14,7 +14,7 @@
     "darkStep11": "#828bb8",
     "darkStep12": "#c8d3f5",
     "darkRed": "#ff757f",
-    "darkOrange": "#a57c00",
+    "darkOrange": "#ff966c",
     "darkYellow": "#ffc777",
     "darkGreen": "#c3e88d",
     "darkCyan": "#86e1fc",

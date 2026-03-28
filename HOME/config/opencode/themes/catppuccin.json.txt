@@ -29,7 +29,7 @@
     "lightCrust": "#dce0e8",
     "darkRosewater": "#f5e0dc",
     "darkFlamingo": "#f2cdcd",
-    "darkPink": "#a57c00",
+    "darkPink": "#f5c2e7",
     "darkMauve": "#cba6f7",
     "darkRed": "#f38ba8",
     "darkMaroon": "#eba0ac",
