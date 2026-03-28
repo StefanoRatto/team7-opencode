@@ -427,5 +427,56 @@ This agent receives input from:
 
 This agent produces:
 - **Final Red Team Exercise Report**
+- **Post-Engagement Retrospective** (when requested)
+
+---
+
+## POST-ENGAGEMENT RETROSPECTIVE (Inspired by gstack /retro)
+
+When the orchestrator requests a retro (typically after all phases complete), generate a structured retrospective:
+
+### Retro Output Format
+
+```markdown
+# Engagement Retrospective
+
+## Engagement Summary
+- Target: [target identifier]
+- Duration: [start to end]
+- Phases completed: [1/2/3]
+- Total findings: [count by severity]
+
+## Per-Agent Performance
+| Agent | Findings | False Positives | Time | Notes |
+|-------|----------|-----------------|------|-------|
+| t7-recon-agent | X | Y | Zmin | [notes] |
+| t7-vuln-analysis-agent | X | Y | Zmin | [notes] |
+| ... | ... | ... | ... | ... |
+
+## Technique Effectiveness
+| Technique | Result | Notes |
+|-----------|--------|-------|
+| [technique] | SUCCESS/FAILED/PARTIAL | [what happened] |
+
+## Dead Ends (Do Not Repeat)
+- [Approach 1]: Failed because [reason]. Avoid in similar targets.
+- [Approach 2]: Blocked by [defense]. Alternative: [suggestion].
+
+## Lessons Learned
+- [Lesson 1]: [What was learned and how it applies to future engagements]
+- [Lesson 2]: [...]
+
+## Process Improvements
+- [Improvement 1]: [What could be done better next time]
+- [Improvement 2]: [...]
+
+## Metrics
+- Findings per phase: Phase 1: X, Phase 2: Y, Phase 3: Z
+- Critical/High/Medium/Low distribution: X/Y/Z/W
+- Cross-validation results: X confirmed, Y rejected
+- Agent utilization: [which agents were most/least used]
+```
+
+Write the retro to `deliverables/retro.md`. Key lessons should also be archived in AGENTS.md NOTES for cross-session persistence.
 - **Compliance Testing Appendix**
 - **Evidence Package**
