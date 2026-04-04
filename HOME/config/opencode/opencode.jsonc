@@ -9,6 +9,7 @@
     "team7": {
       "description": "team7 - Elite Offensive Security Orchestration Agent",
       "mode": "primary",
+      "color": "#a57c00",
       "prompt": "{file:./team7.md}",
       "temperature": 0.3,
       "permission": "allow"
