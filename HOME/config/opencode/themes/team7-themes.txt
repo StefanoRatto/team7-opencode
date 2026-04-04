@@ -1,13 +1,9 @@
 team7-catppuccin.json:
- ----------- --------------- --------------
-| darkPink	|	darkGreen 	| 	lightGreen |
- ----------- --------------- --------------
-|  a57c00	|	 a57c00 	| 	 00d9ff    |
- ----------- --------------- --------------
+- primary: #a57c00
+- secondary: #00d9ff
+- tertiary: #00b0f0
 
 team7-tokyonight.json
- ------------ -------------
-| darkOrange |	darkGreen  |
- ------------ -------------
-|  a57c00	 |	 00d9ff    |
- ------------ -------------
+- primary: #a57c00
+- secondary: #00d9ff
+- tertiary: #00b0f0
