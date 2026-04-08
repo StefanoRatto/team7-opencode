@@ -1,42 +1,99 @@
-diff --git a/packages/opencode/src/cli/logo.ts b/packages/opencode/src/cli/logo.ts
---- a/packages/opencode/src/cli/logo.ts
-+++ b/packages/opencode/src/cli/logo.ts
-@@ -1,6 +1,15 @@
- export const logo = {
--  left: ["                   ", "█▀▀█ █▀▀█ █▀▀█ █▀▀▄", "█__█ █__█ █^^^ █__█", "▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀~~▀"],
--  right: ["             ▄     ", "█▀▀▀ █▀▀█ █▀▀█ █▀▀█", "█___ █__█ █__█ █^^^", "▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀"],
-+  left: [
-+    "-------------  ============       ###        ****      ****   *+++++++++++",
-+    "     ---                         ## ##       *****    ** **           +++",
-+    "     ---                        ##   ##      ** **#  #** **          +++",
-+    "     ---        ==========     ###   ###     **  **  **  **         *++",
-+    "     ---                       ##     ##     **   ****   **        *++",
-+    "     ---                      ##       ##    **    **    **       *++",
-+    "     ---                     ###       ###   **          **      *++",
-+    "     ---       ============  #############   **          **     +++",
-+  ],
-+  right: [],
- }
- 
--export const marks = "_^~"
-+export const marks = ""
-
+diff --git a/packages/opencode/src/cli/cmd/tui/app.tsx b/packages/opencode/src/cli/cmd/tui/app.tsx
+index 4161c025c..02c469396 100644
+--- a/packages/opencode/src/cli/cmd/tui/app.tsx
++++ b/packages/opencode/src/cli/cmd/tui/app.tsx
+@@ -1,7 +1,9 @@
++import { useDirectory } from "@tui/context/directory"
+ import { render, TimeToFirstDraw, useKeyboard, useRenderer, useTerminalDimensions } from "@opentui/solid"
+ import { Clipboard } from "@tui/util/clipboard"
+ import { Selection } from "@tui/util/selection"
+-import { createCliRenderer, MouseButton, type CliRendererConfig } from "@opentui/core"
++import { createCliRenderer, MouseButton, TextAttributes, type CliRendererConfig } from "@opentui/core"
++import { Installation } from "@/installation"
+ import { RouteProvider, useRoute } from "@tui/context/route"
+ import {
+   Switch,
+@@ -267,6 +269,7 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
+   const sync = useSync()
+   const exit = useExit()
+   const promptRef = usePromptRef()
++  const directory = useDirectory()
+   const routes: RouteMap = new Map()
+   const [routeRev, setRouteRev] = createSignal(0)
+   const routeView = (name: string) => {
+@@ -922,14 +925,43 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
+         <TimeToFirstDraw />
+       </Show>
+       <Show when={ready()}>
+-        <Switch>
+-          <Match when={route.data.type === "home"}>
+-            <Home />
+-          </Match>
+-          <Match when={route.data.type === "session"}>
+-            <Session />
+-          </Match>
+-        </Switch>
++        <box flexDirection="column" flexGrow={1}>
++          <Switch>
++            <Match when={route.data.type === "home"}>
++              <Home />
++            </Match>
++            <Match when={route.data.type === "session"}>
++              <Session />
++            </Match>
++          </Switch>
++        </box>
++        <box
++          height={1}
++          backgroundColor={theme.backgroundPanel}
++          flexDirection="row"
++          justifyContent="space-between"
++          flexShrink={0}
++        >
++          <box flexDirection="row">
++            <box flexDirection="row" backgroundColor={theme.backgroundElement} paddingLeft={1} paddingRight={1}>
++              <text fg={theme.textMuted}>open</text>
++              <text fg={theme.text} attributes={TextAttributes.BOLD}>
++                code{" "}
++              </text>
++              <text fg={theme.textMuted}>v{Installation.VERSION}</text>
++            </box>
++            <box paddingLeft={1} paddingRight={1}>
++              <text fg={theme.textMuted}>{directory()}</text>
++            </box>
++          </box>
++          <box flexDirection="row" flexShrink={0}>
++            <text fg={local.agent.color(local.agent.current().name)}>{"\ue0b2"}</text>
++            <text bg={local.agent.color(local.agent.current().name)} fg={theme.background} wrapMode={undefined}>
++              <span style={{ bold: true }}> {local.agent.current().name.toUpperCase()}</span>
++              <span> AGENT </span>
++            </text>
++          </box>
++        </box>
+       </Show>
+       {plugin()}
+       <TuiPluginRuntime.Slot name="app" />
 diff --git a/packages/opencode/src/cli/cmd/tui/component/logo.tsx b/packages/opencode/src/cli/cmd/tui/component/logo.tsx
+index 8e6208b14..d09d82796 100644
 --- a/packages/opencode/src/cli/cmd/tui/component/logo.tsx
 +++ b/packages/opencode/src/cli/cmd/tui/component/logo.tsx
-@@ -1,85 +1,23 @@
+@@ -1,82 +1,20 @@
  import { TextAttributes, RGBA } from "@opentui/core"
 -import { For, type JSX } from "solid-js"
 -import { useTheme, tint } from "@tui/context/theme"
 -import { logo, marks } from "@/cli/logo"
--
++import { For } from "solid-js"
++import { useTheme } from "@tui/context/theme"
++import { logo } from "@/cli/logo"
+ 
 -// Shadow markers (rendered chars in parens):
 -// _ = full shadow cell (space with bg=shadow)
 -// ^ = letter top, shadow bottom (▀ with fg=letter, bg=shadow)
 -// ~ = shadow top only (▀ with fg=shadow)
 -const SHADOW_MARKER = new RegExp(`[${marks}]`)
--
--export function Logo() {
++const T7_COLOR = RGBA.fromInts(165, 124, 0)
+ 
+ export function Logo() {
 -  const { theme } = useTheme()
 -
 -  const renderLine = (line: string, fg: RGBA, bold: boolean): JSX.Element[] => {
@@ -97,22 +154,14 @@ diff --git a/packages/opencode/src/cli/cmd/tui/component/logo.tsx b/packages/ope
 -    return elements
 -  }
 -
-+import { For } from "solid-js"
-+import { useTheme } from "@tui/context/theme"
-+import { logo } from "@/cli/logo"
-+
-+const T7_COLOR = RGBA.fromInts(165, 124, 0)
-+
-+export function Logo() {
 +  useTheme()
    return (
      <box>
--      <For each={logo.left}>
+       <For each={logo.left}>
 -        {(line, index) => (
 -          <box flexDirection="row" gap={1}>
 -            <box flexDirection="row">{renderLine(line, theme.textMuted, false)}</box>
 -            <box flexDirection="row">{renderLine(logo.right[index()], theme.text, true)}</box>
-+      <For each={logo.left}>
 +        {(line) => (
 +          <box flexDirection="row">
 +            <text fg={T7_COLOR} attributes={TextAttributes.BOLD} selectable={false}>
@@ -121,19 +170,64 @@ diff --git a/packages/opencode/src/cli/cmd/tui/component/logo.tsx b/packages/ope
            </box>
          )}
        </For>
-     </box>
-   )
+diff --git a/packages/opencode/src/cli/logo.ts b/packages/opencode/src/cli/logo.ts
+index 44fb93c15..a5b62a51a 100644
+--- a/packages/opencode/src/cli/logo.ts
++++ b/packages/opencode/src/cli/logo.ts
+@@ -1,6 +1,15 @@
+ export const logo = {
+-  left: ["                   ", "█▀▀█ █▀▀█ █▀▀█ █▀▀▄", "█__█ █__█ █^^^ █__█", "▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀~~▀"],
+-  right: ["             ▄     ", "█▀▀▀ █▀▀█ █▀▀█ █▀▀█", "█___ █__█ █__█ █^^^", "▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀"],
++  left: [
++    "-------------  ============       ###        ****      ****   *+++++++++++",
++    "     ---                         ## ##       *****    ** **           +++",
++    "     ---                        ##   ##      ** **#  #** **          +++",
++    "     ---        ==========     ###   ###     **  **  **  **         *++",
++    "     ---                       ##     ##     **   ****   **        *++",
++    "     ---                      ##       ##    **    **    **       *++",
++    "     ---                     ###       ###   **          **      *++",
++    "     ---       ============  #############   **          **     +++",
++  ],
++  right: [],
  }
-
+ 
+-export const marks = "_^~"
++export const marks = ""
 diff --git a/packages/opencode/src/cli/ui.ts b/packages/opencode/src/cli/ui.ts
+index b24a2a2f4..f9f68e5eb 100644
 --- a/packages/opencode/src/cli/ui.ts
 +++ b/packages/opencode/src/cli/ui.ts
-@@ -3,3 +3,2 @@ import { EOL } from "os"
+@@ -1,16 +1,8 @@
+ import z from "zod"
+ import { EOL } from "os"
  import { NamedError } from "@opencode-ai/util/error"
 -import { logo as glyphs } from "./logo"
  
-@@ -43,47 +42,3 @@ export namespace UI {
+ export namespace UI {
+-  const wordmark = [
+-    `⠀                                ▄     `,
+-    `█▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█`,
+-    `█  █ █  █ █▀▀▀ █  █ █    █  █ █  █ █▀▀▀`,
+-    `▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀`,
+-  ]
+-
+   export const CancelledError = NamedError.create("UICancelledError", z.void())
+ 
+   export const Style = {
+@@ -48,61 +40,7 @@ export namespace UI {
+   }
+ 
    export function logo(pad?: string) {
+-    if (!process.stdout.isTTY && !process.stderr.isTTY) {
+-      const result = []
+-      for (const row of wordmark) {
+-        if (pad) result.push(pad)
+-        result.push(row)
+-        result.push(EOL)
+-      }
+-      return result.join("").trimEnd()
+-    }
+-
 -    const result: string[] = []
 -    const reset = "\x1b[0m"
 -    const left = {
@@ -181,71 +275,5 @@ diff --git a/packages/opencode/src/cli/ui.ts b/packages/opencode/src/cli/ui.ts
 -    return result.join("").trimEnd()
 +    return (pad ?? "") + "\x1b[1m\x1b[38;2;165;124;0mteam7\x1b[0m Agent"
    }
-
-diff --git a/packages/opencode/src/cli/cmd/tui/app.tsx b/packages/opencode/src/cli/cmd/tui/app.tsx
---- a/packages/opencode/src/cli/cmd/tui/app.tsx
-+++ b/packages/opencode/src/cli/cmd/tui/app.tsx
-@@ -1,5 +1,7 @@
-+import { useDirectory } from "@tui/context/directory"
- import { render, TimeToFirstDraw, useKeyboard, useRenderer, useTerminalDimensions } from "@opentui/solid"
- import { Clipboard } from "@tui/util/clipboard"
- import { Selection } from "@tui/util/selection"
--import { createCliRenderer, MouseButton, type CliRendererConfig } from "@opentui/core"
-+import { createCliRenderer, MouseButton, TextAttributes, type CliRendererConfig } from "@opentui/core"
-+import { Installation } from "@/installation"
- import { RouteProvider, useRoute } from "@tui/context/route"
-@@ -261,5 +263,6 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
-   const { theme, mode, setMode, locked, lock, unlock } = themeState
-   const sync = useSync()
-   const exit = useExit()
-   const promptRef = usePromptRef()
-+  const directory = useDirectory()
-   const routes: RouteMap = new Map()
-@@ -885,10 +888,39 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
-       <Show when={ready()}>
--        <Switch>
--          <Match when={route.data.type === "home"}>
--            <Home />
--          </Match>
--          <Match when={route.data.type === "session"}>
--            <Session />
--          </Match>
--        </Switch>
-+        <box flexDirection="column" flexGrow={1}>
-+          <Switch>
-+            <Match when={route.data.type === "home"}>
-+              <Home />
-+            </Match>
-+            <Match when={route.data.type === "session"}>
-+              <Session />
-+            </Match>
-+          </Switch>
-+        </box>
-+        <box
-+          height={1}
-+          backgroundColor={theme.backgroundPanel}
-+          flexDirection="row"
-+          justifyContent="space-between"
-+          flexShrink={0}
-+        >
-+          <box flexDirection="row">
-+            <box flexDirection="row" backgroundColor={theme.backgroundElement} paddingLeft={1} paddingRight={1}>
-+              <text fg={theme.textMuted}>open</text>
-+              <text fg={theme.text} attributes={TextAttributes.BOLD}>
-+                code{" "}
-+              </text>
-+              <text fg={theme.textMuted}>v{Installation.VERSION}</text>
-+            </box>
-+            <box paddingLeft={1} paddingRight={1}>
-+              <text fg={theme.textMuted}>{directory()}</text>
-+            </box>
-+          </box>
-+          <box flexDirection="row" flexShrink={0}>
-+            <text fg={local.agent.color(local.agent.current().name)}>{"\ue0b2"}</text>
-+            <text bg={local.agent.color(local.agent.current().name)} fg={theme.background} wrapMode={undefined}>
-+              <span style={{ bold: true }}> {local.agent.current().name.toUpperCase()}</span>
-+              <span> AGENT </span>
-+            </text>
-+          </box>
-+        </box>
-       </Show>
+ 
+   export async function input(prompt: string): Promise<string> {
