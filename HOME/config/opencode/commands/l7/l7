@@ -277,10 +277,10 @@ print_logo() {
   printf '%s%s' "${L7_GOLD}" "${BOLD}"
   cat << 'LOGO'
 
-       _/          _/_/      _/_/    _/_/_/    _/_/_/_/_/
-      _/        _/    _/  _/    _/  _/    _/          _/
-     _/        _/    _/  _/    _/  _/_/_/          _/
-    _/        _/    _/  _/    _/  _/            _/
+       _/          _/_/      _/_/    _/_/_/    _/_/_/_/
+      _/        _/    _/  _/    _/  _/    _/       _/
+     _/        _/    _/  _/    _/  _/_/_/        _/
+    _/        _/    _/  _/    _/  _/           _/
    _/_/_/_/    _/_/      _/_/    _/          _/
 LOGO
   printf '\n%s' "${RESET}"
@@ -967,12 +967,12 @@ run_ai_review() {
   fi
 
   if [[ "$verdict" == "PASS" ]]; then
-    log_pass "  ${L7_GOLD}review passed${RESET}"
+    printf '%s\n' "  ${L7_GOLD}[PASS]${RESET}  ${L7_BLUE}review passed${RESET}"
     ((total_review_passed++)) || true
     log_to_file "REVIEW VERDICT: PASS" ""
     return 0
   else
-    log_fail "  ${L7_ERR}review failed${RESET}"
+    printf '%s\n' "  ${L7_ERR}[FAIL]${RESET}  ${L7_ERR}review failed${RESET}"
     # Extract explanation (text between verdict tags or after "Reason:")
     local explanation=""
     if [[ "$review_response" =~ \<explanation\>(.*)\</explanation\> ]]; then

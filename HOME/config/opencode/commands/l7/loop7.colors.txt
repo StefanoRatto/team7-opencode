@@ -1,0 +1,2 @@
+Primary (gold): #a57c00
+Secondary (blue): #00b0f0
