@@ -1,10 +1,10 @@
 # l7 - Loop 7
 
 ```
-       _/          _/_/      _/_/    _/_/_/    _/_/_/_/
-      _/        _/    _/  _/    _/  _/    _/       _/
-     _/        _/    _/  _/    _/  _/_/_/        _/
-    _/        _/    _/  _/    _/  _/           _/
+       _/          _/_/      _/_/    _/_/_/    _/_/_/_/_/
+      _/        _/    _/  _/    _/  _/    _/          _/
+     _/        _/    _/  _/    _/  _/_/_/          _/
+    _/        _/    _/  _/    _/  _/            _/
    _/_/_/_/    _/_/      _/_/    _/          _/
 ```
 
@@ -26,6 +26,7 @@ Single file. No dependencies beyond opencode and standard Unix tools.
 - [Task Verification](#task-verification)
 - [Execution Control](#execution-control)
 - [Progress Display](#progress-display)
+- [Live Following](#live-following)
 - [Cost Tracking](#cost-tracking)
 - [How It Works](#how-it-works)
 - [CLI Reference](#cli-reference)
@@ -176,8 +177,10 @@ When running, the banner shows:
    _/_/_/_/    _/_/      _/_/    _/          _/
 
   Express API Build  WPRD.md
-============================================
+  tail -f ~/.l7/20260403T200726Z_express_api_build/20260403T200726Z_express_api_build.log
 ```
+
+The `tail -f` line is a copy-pasteable command you can run in another terminal to follow the AI's work in real time.
 
 ### WPRD with accept criteria
 
@@ -258,7 +261,7 @@ A task is done when the tool runs without errors and the output meets quality st
 # Stop after processing 3 tasks (useful for testing a WPRD)
 l7 --max-iterations 3 WPRD.md
 
-# Allow more retries for flaky tasks
+# Allow more retries for flaky tasks (default is unlimited)
 l7 --max-retries 5 WPRD.md
 
 # Longer delay between retries (e.g. waiting for a service to start)
@@ -518,7 +521,8 @@ The Context and Rules of Engagement are not just passed as background text. l7 e
 1. The full WPRD file (for reference)
 2. Context as a framing section ("your working environment")
 3. Rules of Engagement as explicit constraints ("you MUST follow these -- the reviewer will verify compliance")
-4. The current task with any accept: criteria
+4. The exact task text stated explicitly ("Implement this specific task: ...")
+5. Accept criteria for the current task (if defined)
 
 **Reviewer prompt** receives:
 1. The full WPRD file (for reference)
@@ -538,7 +542,7 @@ Tasks use a 4-state notation:
 | `[ ]` | Pending | To do, not yet started | dim |
 | `[\]` | In progress | Currently being worked on | blue bold |
 | `[+]` | Completed | Finished successfully | gold |
-| `[x]` | Failed | Did not complete after retries | gold bold |
+| `[x]` | Failed | Did not complete (retries exhausted or stopped by breaker) | gold bold |
 
 ### State transitions
 
@@ -553,20 +557,23 @@ Tasks use a 4-state notation:
  |
  +---> [+] completed    (all checks passed)
  |
- +---> [x] failed       (retries exhausted)
+ +---> [x] failed       (retries exhausted, if limited)
 ```
 
 l7 manages these transitions automatically:
 
 1. When a task is picked up: `[ ]` -> `[\]`
 2. When verification passes: `[\]` -> `[+]`
-3. When all retries fail: `[\]` -> `[x]`
+3. On retry (if AI marked it `[+]` prematurely): `[+]` -> `[\]` (reset before re-sending to AI)
+4. When retries are exhausted (if limited): `[\]` -> `[x]`
 
-The AI is also told the notation and asked to mark tasks `[+]` when done. If the AI marks it directly, l7 respects that.
+The AI is also told the notation and asked to mark tasks `[+]` when done. If the AI marks it directly and verification passes, l7 respects that. If verification fails, l7 resets the marker to `[\]` before retrying.
 
 ### Resuming interrupted runs
 
 If l7 is interrupted (Ctrl+C, crash, timeout), tasks marked `[\]` stay in progress. On the next run, l7 picks up `[\]` tasks first before moving to `[ ]` tasks. Interrupted work is automatically resumed.
+
+By default, retries are unlimited -- l7 keeps retrying a failing task until it succeeds or the run is interrupted. Use `--max-retries N` to cap retries per task.
 
 ### Writing a WPRD
 
@@ -620,7 +627,7 @@ AI finishes work
 [3] Mark [+] --------> Task completed, move to next
 ```
 
-If any layer fails, the task is retried. After all retries fail, the task is marked `[x]`.
+If any layer fails, the task is retried. By default, retries are unlimited -- the task is retried until it passes. If `--max-retries N` is set, the task is marked `[x]` after N failures.
 
 ### verify: -- Shell Checks
 
@@ -656,10 +663,13 @@ Natural-language conditions checked by the AI reviewer.
 ### Retry Behavior
 
 When a task fails (empty response, API error, failed verify, or failed review):
-1. Wait `--retry-delay` seconds
-2. Retry the task (it stays as `[\]` in the WPRD)
-3. After `--max-retries` failures, mark the task `[x]` and move on
-4. After 3 consecutive `[x]` failures, stop entirely
+1. If the AI marked the task `[+]` during its attempt, l7 resets it to `[\]`
+2. The prompt is rebuilt fresh (picks up any WPRD changes from the failed attempt)
+3. Wait `--retry-delay` seconds
+4. Retry the task
+5. By default, retries are unlimited -- the task is retried until it succeeds
+6. If `--max-retries N` is set, mark the task `[x]` after N failures and move on
+7. After 3 consecutive `[x]` failures, stop entirely
 
 ---
 
@@ -719,6 +729,24 @@ Each execution creates a unique directory under `~/.l7/`:
 
 The `.log` file contains every prompt sent, every raw response, every verify/review result with timestamps. The `.txt` file is the same stats summary shown in the terminal.
 
+### Live Following
+
+The log file is populated live during execution. AI output is streamed to the log as it happens, so you can follow along in real time from another terminal.
+
+At startup, l7 prints a `tail -f` command you can copy-paste:
+
+```
+  Express API Build  WPRD.md
+  tail -f ~/.l7/20260403T200726Z_express_api_build/20260403T200726Z_express_api_build.log
+```
+
+Run that command in a second terminal to see:
+- The prompt being sent to the AI
+- Raw AI JSON output as it streams (tool calls, text generation, file edits)
+- Verify check results (pass/fail with commands)
+- Review verdicts (pass/fail with explanations)
+- Token usage and cost per call
+
 ---
 
 ## Cost Tracking
@@ -732,22 +760,28 @@ Token usage from both worker and reviewer calls is tracked. Requires `bc`.
 ```
 1. parse args, check requirements
 2. create run directory (~/.l7/<timestamp>_<title>/)
-3. loop:
+3. print banner with tail -f command for live following
+4. loop:
    a. get next task ([\] first, then [ ])
    b. if none → show summary, write stats, exit
    c. mark [\] in progress
    d. show dashboard
-   e. build prompt with accept: criteria
-   f. run AI (background, with timeout watchdog)
-   g. show spinner with activity detection
-   h. parse result, log to .log file
-   i. run verify: checks
-   j. run AI review with accept: criteria
-   k. pass → mark [+]
-   l. fail after retries → mark [x]
-   m. 3 consecutive [x] → stop
-   n. repeat
+   e. ensure task is [\] (reset if AI marked [+] in a prior failed attempt)
+   f. build prompt with explicit task text and accept: criteria
+   g. run AI (background, with timeout watchdog + live log streaming)
+   h. show spinner with activity detection
+   i. parse result
+   j. re-locate task line (AI may have inserted result lines)
+   k. run verify: checks
+   l. run AI review with accept: criteria
+   m. pass → mark [+]
+   n. fail → retry (unlimited by default, or up to --max-retries)
+   o. retries exhausted (if limited) → mark [x]
+   p. 3 consecutive [x] → stop
+   q. repeat
 ```
+
+Each task is passed to the AI explicitly by name ("Implement this specific task: ...") rather than relying on the AI to find it in the WPRD. The prompt is rebuilt fresh on every attempt (including retries) to pick up any WPRD changes.
 
 l7 edits the WPRD file directly via sed to transition task markers. The AI is also told the notation and asked to mark `[+]` when done. Both paths converge to the same state.
 
@@ -765,7 +799,7 @@ USAGE:
 OPTIONS:
   --model <name>         Override opencode model
   --max-iterations N     Stop after N tasks (0 = unlimited)
-  --max-retries N        Retries per failed task (default: 3)
+  --max-retries N        Retries per failed task (0 = unlimited, default)
   --retry-delay N        Seconds between retries (default: 5)
   --ai-timeout N         Max seconds per AI call (default: 900)
   --review-timeout N     Max seconds per review call (default: 300)
@@ -783,13 +817,19 @@ OPTIONS:
 | Feature | Detail |
 |---------|--------|
 | 4-state tracking | `[ ]` `[\]` `[+]` `[x]` -- always know where things stand |
+| Explicit task targeting | each task is passed to the AI by name, not discovered by the AI |
 | Interrupted resume | `[\]` tasks picked up first on restart |
 | verify: checks | shell commands that must exit 0 |
 | accept: criteria | natural-language conditions checked by AI reviewer |
 | AI review | second AI call inspects work |
+| Unlimited retries | default: keeps retrying until success (cap with `--max-retries N`) |
+| Retry state reset | if AI marked task `[+]` but verify/review failed, marker is reset to `[\]` before retry |
+| Fresh prompt per attempt | prompt is rebuilt on each retry to pick up WPRD changes |
+| Result-line tolerance | verify/accept scanning skips AI-inserted result bullets without breaking |
 | Failed marking | exhausted retries → `[x]`, never left dangling |
 | Failure breaker | 3 consecutive `[x]` → stop |
 | Timeout watchdog | kills hung AI after configurable timeout |
+| Live log streaming | AI output streamed to log file in real time for `tail -f` following |
 | Clean shutdown | all children killed on exit |
 | Run logging | full interaction log + stats file per execution |
 
@@ -805,6 +845,8 @@ OPTIONS:
 | Review keeps saying FAIL | Add specific `accept:` criteria. Use `--no-review` to skip |
 | opencode not found | Install from [opencode.ai/docs](https://opencode.ai/docs/) |
 | AI hangs | Timeout kills it automatically. Adjust with `--ai-timeout 1800` |
+| AI works on wrong task | Should not happen -- l7 passes each task by name. Check the WPRD for duplicate task text |
+| Want to watch the AI work | Copy the `tail -f` command shown at startup and run it in another terminal |
 
 ---
 

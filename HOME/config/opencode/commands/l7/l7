@@ -37,7 +37,7 @@ MODE=""              # "wprd" or "single"
 MODEL_OVERRIDE=""
 DRY_RUN=false
 MAX_ITERATIONS=0     # 0 = unlimited
-MAX_RETRIES=3
+MAX_RETRIES=0     # 0 = unlimited
 RETRY_DELAY=5
 VERBOSE=false
 AI_TIMEOUT=900                 # seconds; max per worker AI call
@@ -69,6 +69,7 @@ fi
 ai_pid=""
 monitor_pid=""
 watchdog_pid=""
+log_stream_pid=""
 tmpfile=""
 total_input_tokens=0
 total_output_tokens=0
@@ -90,14 +91,15 @@ run_label=""
 # UTILITY FUNCTIONS
 # ============================================================================
 
-# Log helpers. Warnings and errors go to stderr so they don't corrupt
-# piped stdout output. Body text is colored to match the severity.
-log_info()  { printf '%s\n' "${L7_BLUE}[INFO]${RESET} ${L7_BLUE}$*${RESET}"; }
-log_warn()  { printf '%s\n' "${L7_BLUE}[WARN]${RESET} ${L7_BLUE}$*${RESET}" >&2; }
-log_error() { printf '%s\n' "${L7_ERR}[ERROR]${RESET} ${L7_ERR}$*${RESET}" >&2; }
-log_debug() { [[ "$VERBOSE" == true ]] && printf '%s\n' "${DIM}[DEBUG] $*${RESET}" || true; }
-log_pass()  { printf '%s\n' "${L7_GOLD}[PASS]${RESET} ${L7_BLUE}$*${RESET}"; }
-log_fail()  { printf '%s\n' "${L7_ERR}[FAIL]${RESET} ${L7_ERR}$*${RESET}"; }
+# Log helpers. Warnings, errors, and informational messages go to stderr
+# so they don't corrupt piped stdout output. Body text is colored to
+# match the severity.
+log_info()  { printf '%s\n' "  ${L7_BLUE}[INFO]${RESET} ${L7_BLUE}$*${RESET}" >&2; }
+log_warn()  { printf '%s\n' "  ${L7_BLUE}[WARN]${RESET} ${L7_BLUE}$*${RESET}" >&2; }
+log_error() { printf '%s\n' "  ${L7_ERR}[ERROR]${RESET} ${L7_ERR}$*${RESET}" >&2; }
+log_debug() { [[ "$VERBOSE" == true ]] && printf '%s\n' "  ${DIM}[DEBUG] $*${RESET}" >&2 || true; }
+log_pass()  { printf '%s\n' "  ${L7_GOLD}[PASS]${RESET} ${L7_BLUE}$*${RESET}"; }
+log_fail()  { printf '%s\n' "  ${L7_ERR}[FAIL]${RESET} ${L7_ERR}$*${RESET}"; }
 
 # Print error, show help, and exit.
 die_usage() {
@@ -110,6 +112,24 @@ die_usage() {
 # Validate that a string is a non-negative integer.
 # Usage: is_uint "$value" || die_usage "..."
 is_uint() { [[ "${1:-}" =~ ^[0-9]+$ ]]; }
+
+# Check whether retries are exhausted. Returns 0 (true) if the retry count
+# has reached the limit. When MAX_RETRIES is 0 (unlimited), always returns 1
+# (false) -- retries never run out.
+retries_exhausted() {
+  local count=$1
+  [[ $MAX_RETRIES -gt 0 ]] && [[ $count -ge $MAX_RETRIES ]];
+}
+
+# Format retry count for display. Shows "3/5" when limited, "3" when unlimited.
+format_retry_count() {
+  local count=$1
+  if [[ $MAX_RETRIES -gt 0 ]]; then
+    printf '%d/%d' "$count" "$MAX_RETRIES"
+  else
+    printf '%d' "$count"
+  fi
+}
 
 # Validate that a string looks like a non-negative decimal number.
 # Accepts integers (42) and decimals (3.14). Rejects everything else.
@@ -132,10 +152,11 @@ format_elapsed() {
 
 # Format cost to 2 decimal places with leading zero.
 # Returns "n/a" when cost data is unavailable (0 with tokens present).
+# Forces C locale to ensure dot decimal separator regardless of system locale.
 format_cost() {
   local raw=$1
   if is_numeric "$raw" && [[ "$raw" != "0" ]] && command -v bc &>/dev/null; then
-    printf '$%.2f' "$(echo "$raw" | bc -l 2>/dev/null)" 2>/dev/null || echo "$raw"
+    LC_NUMERIC=C printf '$%.2f' "$(echo "$raw" | bc -l 2>/dev/null)" 2>/dev/null || echo "$raw"
   else
     echo "n/a"
   fi
@@ -310,7 +331,7 @@ show_help() {
   ${GW}OPTIONS${R}
     ${AW}--model${R} ${A}<name>${R}       ${B}Override model${R} ${D}(e.g. gpt-4o, o3-mini)${R}
     ${AW}--max-iterations${R} ${A}N${R}   ${B}Stop after N tasks${R} ${D}(0 = unlimited)${R}
-    ${AW}--max-retries${R} ${A}N${R}      ${B}Retries per task${R} ${D}(default: 3)${R}
+    ${AW}--max-retries${R} ${A}N${R}      ${B}Retries per task${R} ${D}(0 = unlimited, default)${R}
     ${AW}--retry-delay${R} ${A}N${R}      ${B}Seconds between retries${R} ${D}(default: 5)${R}
     ${AW}--ai-timeout${R} ${A}N${R}       ${B}Max seconds per AI call${R} ${D}(default: 900)${R}
     ${AW}--review-timeout${R} ${A}N${R}   ${B}Max seconds per review call${R} ${D}(default: 300)${R}
@@ -514,9 +535,10 @@ cleanup() {
   local exit_code=$?
   set +e  # Don't let cleanup abort on errors
 
-  [[ -n "$watchdog_pid" ]] && kill "$watchdog_pid" 2>/dev/null
-  [[ -n "$monitor_pid" ]]  && kill "$monitor_pid"  2>/dev/null
-  [[ -n "$ai_pid" ]]       && kill "$ai_pid"       2>/dev/null
+  [[ -n "$watchdog_pid" ]]    && kill "$watchdog_pid" 2>/dev/null
+  [[ -n "$log_stream_pid" ]]  && kill "$log_stream_pid" 2>/dev/null
+  [[ -n "$monitor_pid" ]]     && kill "$monitor_pid"  2>/dev/null
+  [[ -n "$ai_pid" ]]          && kill "$ai_pid"       2>/dev/null
   wait 2>/dev/null  # Reap all children
 
   [[ -n "$tmpfile" ]] && rm -f "$tmpfile"
@@ -547,7 +569,7 @@ cleanup() {
 get_wprd_title() {
   local in_title=false
   while IFS= read -r line; do
-    if [[ "$line" =~ ^##[[:space:]]+Title ]]; then
+    if [[ "$line" =~ ^##[[:space:]]+Title[[:space:]]*$ ]]; then
       in_title=true
       continue
     fi
@@ -576,7 +598,7 @@ get_wprd_section() {
   local in_section=false
   local content=""
   while IFS= read -r line; do
-    if [[ "$line" =~ ^##[[:space:]]+"$target_section" ]]; then
+    if [[ "$line" =~ ^##[[:space:]]+"$target_section"[[:space:]]*$ ]]; then
       in_section=true
       continue
     fi
@@ -601,7 +623,7 @@ get_wprd_section() {
 #   - [ ] pending     (to do -- will be picked up)
 #   - [\] in progress (currently being worked on)
 #   - [+] completed   (finished successfully)
-#   - [x] failed      (did not complete after retries)
+#   - [x] failed      (did not complete after retries, or unlimited retries stopped by breaker)
 #
 # Tasks can optionally have verify: and accept: lines immediately after them:
 #   - [ ] Create the config file
@@ -637,21 +659,10 @@ get_next_task() {
   fi
 }
 
-# Get the line number of the first actionable task (1-indexed).
-# Checks [\] first (resume), then [ ] (new work).
-get_next_task_line() {
-  local line_num
-  line_num=$(grep -n -m1 '^\- \[\\]' "$WPRD_FILE" 2>/dev/null | cut -d: -f1 || true)
-  if [[ -z "$line_num" ]]; then
-    line_num=$(grep -n -m1 '^\- \[ \]' "$WPRD_FILE" 2>/dev/null | cut -d: -f1 || true)
-  fi
-  printf '%s' "$line_num"
-}
-
 # Extract verify: commands for a task at the given line number.
-# Reads consecutive indented "verify:" and "accept:" lines immediately
-# following the task. Returns only verify: commands (one per line,
-# without the "verify:" prefix). Skips accept: lines.
+# Reads consecutive indented lines immediately following the task.
+# Returns only verify: commands (one per line, without the "verify:" prefix).
+# Skips accept: lines and result bullet lines (e.g. "  - some result").
 get_verify_commands() {
   local task_line=$1
   local line_num=$((task_line + 1))
@@ -674,16 +685,19 @@ get_verify_commands() {
     # Skip accept: lines (they belong to the same task block)
     elif [[ "$line" =~ ^[[:space:]]+accept:[[:space:]]* ]]; then
       ((line_num++)) || true
+    # Skip other indented lines (result bullets, notes added by AI)
+    elif [[ "$line" =~ ^[[:space:]]+ ]]; then
+      ((line_num++)) || true
     else
-      break  # Stop at first line that's neither verify: nor accept:
+      break  # Non-indented line = next task or section boundary
     fi
   done
 }
 
 # Extract accept: criteria for a task at the given line number.
-# Reads consecutive indented "verify:" and "accept:" lines immediately
-# following the task. Returns only accept: criteria (one per line,
-# without the "accept:" prefix). Skips verify: lines.
+# Reads consecutive indented lines immediately following the task.
+# Returns only accept: criteria (one per line, without the "accept:" prefix).
+# Skips verify: lines and result bullet lines (e.g. "  - some result").
 get_accept_criteria() {
   local task_line=$1
   local line_num=$((task_line + 1))
@@ -706,8 +720,11 @@ get_accept_criteria() {
     # Skip verify: lines (they belong to the same task block)
     elif [[ "$line" =~ ^[[:space:]]+verify:[[:space:]]* ]]; then
       ((line_num++)) || true
+    # Skip other indented lines (result bullets, notes added by AI)
+    elif [[ "$line" =~ ^[[:space:]]+ ]]; then
+      ((line_num++)) || true
     else
-      break  # Stop at first line that's neither verify: nor accept:
+      break  # Non-indented line = next task or section boundary
     fi
   done
 }
@@ -776,6 +793,37 @@ mark_task_failed() {
   rm -f "${WPRD_FILE}.bak"
 }
 
+# Find the line number of a task by its exact text, regardless of marker state.
+# Matches any marker ([+], [x], [\], [ ]) followed by the exact task text.
+# Returns the line number (1-indexed) or empty string if not found.
+find_task_line() {
+  local task="$1"
+  while IFS= read -r match; do
+    local line_num="${match%%:*}"
+    local line_text="${match#*:}"
+    # Remove the "- [X] " prefix using glob pattern (? matches any marker char)
+    local extracted_task="${line_text#- \[?\] }"
+    if [[ "$extracted_task" == "$task" ]]; then
+      printf '%s' "$line_num"
+      return
+    fi
+  done < <(grep -n "^- \[.\] " "$WPRD_FILE" 2>/dev/null || true)
+}
+
+# Ensure a task is marked [\] (in progress). If the AI marked it [+] during
+# a failed attempt, this resets it so the retry sees the correct state.
+# Handles any marker state -> [\].
+ensure_task_in_progress() {
+  local task="$1"
+  local escaped_task
+  escaped_task=$(printf '%s\n' "$task" | sed 's/[[\.*^$/&|]/\\&/g')
+  # Only act if the task is NOT already [\]
+  if ! grep -q "^- \[\\\\] ${escaped_task}" "$WPRD_FILE" 2>/dev/null; then
+    sed -i.bak "s|^- \[.\] ${escaped_task}|- [\\\\] ${escaped_task}|" "$WPRD_FILE"
+    rm -f "${WPRD_FILE}.bak"
+  fi
+}
+
 # ============================================================================
 # VERIFY CHECKS
 #
@@ -831,11 +879,11 @@ run_verify_checks() {
     output=$(eval "$cmd" 2>&1) || exit_code=$?
 
     if [[ $exit_code -eq 0 ]]; then
-      log_pass "  ${L7_BLUE}(${idx}/${#commands[@]})${RESET} ${L7_BLUE}${display_cmd}${RESET}"
+      log_pass "${L7_BLUE}(${idx}/${#commands[@]})${RESET} ${L7_BLUE}${display_cmd}${RESET}"
       ((total_verify_passed++)) || true
       log_to_file "VERIFY PASS" "Command: ${cmd}"
     else
-      log_fail "  ${L7_BLUE}(${idx}/${#commands[@]})${RESET} ${L7_ERR}${display_cmd}${RESET}"
+      log_fail "${L7_BLUE}(${idx}/${#commands[@]})${RESET} ${L7_ERR}${display_cmd}${RESET}"
       if [[ -n "$output" ]]; then
         # Show first 3 lines of output on failure
         printf '%s\n' "$output" | head -3 | while IFS= read -r line; do
@@ -935,9 +983,9 @@ run_ai_review() {
 
   local review_result
   review_result=$(cat "$review_tmpfile" 2>/dev/null || true)
-  rm -f "$review_tmpfile"
 
   if [[ -z "$review_result" ]]; then
+    rm -f "$review_tmpfile"
     log_warn "Review returned empty response, treating as PASS"
     return 0
   fi
@@ -947,9 +995,10 @@ run_ai_review() {
   parse_ai_result "$review_result" review_response review_in review_out review_cost
   accumulate_usage "$review_in" "$review_out" "$review_cost"
 
-  # Log the review interaction
+  # Log the review interaction (must happen before deleting the temp file)
   log_ai_raw "REVIEW RESPONSE" "$review_tmpfile"
   log_to_file "REVIEW RESPONSE PARSED" "Tokens: ${review_in} in / ${review_out} out | Cost: ${review_cost}"
+  rm -f "$review_tmpfile"
 
   # Extract verdict from response
   local verdict="PASS"  # Default to PASS if no verdict tag found
@@ -983,7 +1032,7 @@ run_ai_review() {
     if [[ -n "$explanation" ]]; then
       # Show first 3 lines of explanation
       printf '%s\n' "$explanation" | head -3 | while IFS= read -r line; do
-        printf "         ${DIM}%s${RESET}\n" "$line"
+        printf "          ${DIM}%s${RESET}\n" "$line"
       done
     fi
     ((total_review_failed++)) || true
@@ -1340,8 +1389,11 @@ monitor_progress() {
 # from the WPRD and injects them as explicit prompt sections so the LLM
 # treats them with structural authority rather than as buried document text.
 # The full WPRD file is still included via @file for complete reference.
+#
+# Args: $1=task_line_number (for accept: extraction)  $2=task_text (explicit task)
 build_wprd_prompt() {
   local task_line="${1:-}"
+  local task_text="${2:-}"
 
   # Extract structured sections from the WPRD
   local context_text=""
@@ -1389,9 +1441,14 @@ ACCEPTANCE CRITERIA (will be checked after you finish):
 @${WPRD_FILE}
 
 ${context_block}${rules_block}YOUR TASK:
-1. Find the first task marked '- [ ]' (pending) or '- [\]' (in progress) and implement it.
+Implement this specific task from the WPRD above:
+
+  ${task_text}
+
+Steps:
+1. Implement the task described above. It is currently marked '- [\]' (in progress) in the WPRD.
 2. Follow all Rules of Engagement above. Violations will cause the task to fail review.
-3. When done, update the WPRD to mark the task as completed: change '- [ ]' or '- [\]' to '- [+]'.
+3. When done, update the WPRD to mark the task as completed: change '- [\]' to '- [+]'.
 4. If the task has verify: lines below it, those are shell commands that will be run
    after you finish to check your work. Make sure your output satisfies them.
 ${accept_block}
@@ -1402,7 +1459,7 @@ TASK NOTATION:
   - [x] = failed (do not touch these)
 
 WHEN MARKING A TASK COMPLETE:
-  - Change the marker from [ ] or [\] to [+]. Do NOT modify the task text itself.
+  - Change the marker from [\] to [+]. Do NOT modify the task text itself.
   - Add any results, output, or notes as indented bullet points BELOW the task line.
   - Place result lines BEFORE any verify: or accept: lines.
   - Example:
@@ -1410,7 +1467,7 @@ WHEN MARKING A TASK COMPLETE:
       - avg: 7.712 ms (min: 7.1, max: 8.4)
       verify: test -f results.txt
 
-ONLY WORK ON A SINGLE TASK.
+ONLY WORK ON THIS SINGLE TASK. Do NOT touch other tasks.
 If ALL tasks in the WPRD are completed or failed (no [ ] or [\] remain), output <promise>COMPLETE</promise>.
 EOF
 }
@@ -1434,8 +1491,12 @@ EOF
 # ============================================================================
 
 # Launch the AI engine as a background process.
-# Sets global: ai_pid
+# Sets global: ai_pid, log_stream_pid
 # Increments: total_agent_calls
+#
+# Output goes directly to the output file. A background `tail -f` streams
+# a copy to the run log so the user can follow along with `tail -f` on
+# the log file. The tail process is cleaned up by stop_log_stream().
 run_ai_command() {
   local prompt=$1
   local output_file=$2
@@ -1455,6 +1516,14 @@ run_ai_command() {
     > "$output_file" 2>/dev/null &
 
   ai_pid=$!
+
+  # Stream a live copy of the output to the run log. Uses tail -f to
+  # follow the output file from the beginning. Killed by stop_log_stream()
+  # after the AI finishes.
+  if [[ -n "$run_log" ]]; then
+    tail -f -n +1 "$output_file" >> "$run_log" 2>/dev/null &
+    log_stream_pid=$!
+  fi
 }
 
 # Wait for the AI process to finish, with a timeout watchdog.
@@ -1484,6 +1553,18 @@ stop_monitor() {
   fi
   tput cr 2>/dev/null || printf "\r"
   tput el 2>/dev/null || true
+}
+
+# Stop the background log stream (tail -f) that copies AI output to the
+# run log. Waits briefly to let tail flush any remaining data before killing.
+# Resets log_stream_pid after completion.
+stop_log_stream() {
+  if [[ -n "$log_stream_pid" ]]; then
+    sleep 0.5 2>/dev/null || sleep 1  # let tail flush final data
+    kill "$log_stream_pid" 2>/dev/null || true
+    wait "$log_stream_pid" 2>/dev/null || true
+    log_stream_pid=""
+  fi
 }
 
 # Parse the AI engine's JSON output to extract the response text,
@@ -1574,7 +1655,9 @@ run_single_task_once() {
   prompt=$(build_single_prompt "$task")
 
   if [[ "$DRY_RUN" == true ]]; then
-    printf '%s\n' "${L7_BLUE}$prompt${RESET}"
+    printf '%s' "${L7_BLUE}"
+    printf '%s\n' "$prompt" | sed 's/^/  /'
+    printf '%s' "${RESET}"
     return 0
   fi
 
@@ -1588,6 +1671,7 @@ run_single_task_once() {
 
   wait_for_ai
   stop_monitor
+  stop_log_stream
 
   local result
   result=$(cat "$tmpfile" 2>/dev/null || true)
@@ -1603,8 +1687,7 @@ run_single_task_once() {
   local response="" input_tokens=0 output_tokens=0 actual_cost="0"
   parse_ai_result "$result" response input_tokens output_tokens actual_cost
 
-  # Log the raw AI output and parsed response
-  log_ai_raw "AGENT RESPONSE (single task)" "$tmpfile"
+  # Log parsed stats (raw JSON was already streamed to the log via tail)
   log_to_file "AGENT RESPONSE PARSED" "Tokens: ${input_tokens} in / ${output_tokens} out | Cost: ${actual_cost}"
 
   printf "  ${L7_GOLD}${BOLD}+${RESET} ${L7_GOLD}done${RESET}\n"
@@ -1624,11 +1707,12 @@ run_single_task_once() {
 # waits for completion. After the AI finishes, runs verification layers.
 #
 # On success: marks the task [+] (completed).
-# On failure after all retries: marks the task [x] (failed).
+# On failure after all retries (or when MAX_RETRIES is 0, indefinitely
+# until success): marks the task [x] (failed).
 #
 # Return codes:
 #   0 = task completed and verified, more tasks remain
-#   1 = task failed after all retries (marked [x])
+#   1 = task failed after all retries exhausted (marked [x])
 #   2 = all tasks done (no [ ] or [\] remain)
 # ============================================================================
 
@@ -1642,9 +1726,6 @@ run_wprd_task() {
     return 2  # No actionable tasks
   fi
 
-  local task_line
-  task_line=$(get_next_task_line)
-
   # Mark task as in-progress: [ ] -> [\]
   mark_task_in_progress "$current_task"
 
@@ -1652,29 +1733,32 @@ run_wprd_task() {
 
   tmpfile=$(mktemp -t l7.XXXXXX)
 
-  local prompt
-  prompt=$(build_wprd_prompt "$task_line")
-
   if [[ "$DRY_RUN" == true ]]; then
-    printf '%s\n' "${L7_BLUE}$prompt${RESET}"
+    local task_line
+    task_line=$(find_task_line "$current_task")
+    local prompt
+    prompt=$(build_wprd_prompt "$task_line" "$current_task")
+    printf '%s' "${L7_BLUE}"
+    printf '%s\n' "$prompt" | sed 's/^/  /'
+    printf '%s' "${RESET}"
     # Show verify commands and accept criteria if any
     if [[ -n "$task_line" ]]; then
       local verify_cmds
       verify_cmds=$(get_verify_commands "$task_line")
       if [[ -n "$verify_cmds" ]]; then
         echo ""
-        printf '%s\n' "${L7_BLUE}verify${RESET}"
+        printf '  %s\n' "${L7_BLUE}verify${RESET}"
         printf '%s\n' "$verify_cmds" | while IFS= read -r cmd; do
-          printf '  %s\n' "${L7_BLUE}\$${RESET} ${L7_BLUE}$cmd${RESET}"
+          printf '    %s\n' "${L7_BLUE}\$${RESET} ${L7_BLUE}$cmd${RESET}"
         done
       fi
       local accept_crit
       accept_crit=$(get_accept_criteria "$task_line")
       if [[ -n "$accept_crit" ]]; then
         echo ""
-        printf '%s\n' "${L7_BLUE}accept${RESET}"
+        printf '  %s\n' "${L7_BLUE}accept${RESET}"
         printf '%s\n' "$accept_crit" | while IFS= read -r crit; do
-          printf '  %s\n' "${L7_BLUE}-${RESET} ${L7_BLUE}$crit${RESET}"
+          printf '    %s\n' "${L7_BLUE}-${RESET} ${L7_BLUE}$crit${RESET}"
         done
       fi
     fi
@@ -1684,8 +1768,23 @@ run_wprd_task() {
   fi
 
   # Retry loop for transient failures (empty responses, API errors,
-  # failed verify checks, or failed AI review).
-  while [[ $retry_count -lt $MAX_RETRIES ]]; do
+  # failed verify checks, or failed AI review). When MAX_RETRIES is 0
+  # (unlimited), the loop runs indefinitely until the task succeeds.
+  while ! retries_exhausted "$retry_count"; do
+    # Ensure the task is marked [\] before each attempt. The AI may have
+    # marked it [+] during a previous failed attempt (verify/review failed
+    # after the AI completed its work). Without this reset, the AI would
+    # see the task as [+] and skip it or work on the wrong task.
+    ensure_task_in_progress "$current_task"
+
+    # Build the prompt fresh each attempt. This picks up any WPRD changes
+    # from prior attempts and uses the current task line number for
+    # accurate accept: criteria extraction.
+    local task_line
+    task_line=$(find_task_line "$current_task")
+    local prompt
+    prompt=$(build_wprd_prompt "$task_line" "$current_task")
+
     # Truncate output file before each attempt to prevent stale data.
     : > "$tmpfile"
 
@@ -1696,6 +1795,7 @@ run_wprd_task() {
 
     wait_for_ai
     stop_monitor
+    stop_log_stream
 
     local result
     result=$(cat "$tmpfile" 2>/dev/null || true)
@@ -1703,8 +1803,8 @@ run_wprd_task() {
     # Check for empty response.
     if [[ -z "$result" ]]; then
       ((retry_count++)) || true
-      log_error "Empty response ($retry_count/$MAX_RETRIES)"
-      if [[ $retry_count -lt $MAX_RETRIES ]]; then
+      log_error "Empty response ($(format_retry_count "$retry_count"))"
+      if ! retries_exhausted "$retry_count"; then
         log_info "Retrying in ${RETRY_DELAY}s..."
         sleep "$RETRY_DELAY"
         continue
@@ -1719,8 +1819,8 @@ run_wprd_task() {
     local error_msg
     if ! error_msg=$(check_for_errors "$result"); then
       ((retry_count++)) || true
-      log_error "$error_msg ($retry_count/$MAX_RETRIES)"
-      if [[ $retry_count -lt $MAX_RETRIES ]]; then
+      log_error "$error_msg ($(format_retry_count "$retry_count"))"
+      if ! retries_exhausted "$retry_count"; then
         log_info "Retrying in ${RETRY_DELAY}s..."
         sleep "$RETRY_DELAY"
         continue
@@ -1735,8 +1835,7 @@ run_wprd_task() {
     local response="" input_tokens=0 output_tokens=0 actual_cost="0"
     parse_ai_result "$result" response input_tokens output_tokens actual_cost
 
-    # Log the raw AI output and parsed response
-    log_ai_raw "AGENT RESPONSE (task: ${current_task:0:60})" "$tmpfile"
+    # Log parsed stats (raw JSON was already streamed to the log via tail)
     log_to_file "AGENT RESPONSE PARSED" "Task: ${current_task:0:60}\nTokens: ${input_tokens} in / ${output_tokens} out | Cost: ${actual_cost}"
 
     printf "  ${L7_GOLD}${BOLD}+${RESET} ${L7_GOLD}done${RESET}  ${DIM}${current_task:0:40}${RESET}\n"
@@ -1746,6 +1845,10 @@ run_wprd_task() {
     rm -f "$tmpfile"
     tmpfile=""
 
+    # Re-locate the task line after the AI modified the WPRD.
+    # The AI may have inserted result lines, shifting line numbers.
+    task_line=$(find_task_line "$current_task")
+
     # ---- VERIFICATION LAYER 1: verify: checks ----
     if [[ -n "$task_line" ]]; then
       local verify_rc=0
@@ -1753,12 +1856,10 @@ run_wprd_task() {
 
       if [[ $verify_rc -ne 0 ]]; then
         ((retry_count++)) || true
-        log_warn "Verify checks failed ($retry_count/$MAX_RETRIES)"
-        if [[ $retry_count -lt $MAX_RETRIES ]]; then
+        log_warn "Verify checks failed ($(format_retry_count "$retry_count"))"
+        if ! retries_exhausted "$retry_count"; then
           log_info "Retrying task in ${RETRY_DELAY}s..."
           sleep "$RETRY_DELAY"
-          # Re-read task line in case WPRD was modified
-          task_line=$(get_next_task_line)
           continue
         fi
         mark_task_failed "$current_task"
@@ -1772,12 +1873,10 @@ run_wprd_task() {
 
     if [[ $review_rc -ne 0 ]]; then
       ((retry_count++)) || true
-      log_warn "AI review failed ($retry_count/$MAX_RETRIES)"
-      if [[ $retry_count -lt $MAX_RETRIES ]]; then
+      log_warn "AI review failed ($(format_retry_count "$retry_count"))"
+      if ! retries_exhausted "$retry_count"; then
         log_info "Retrying task in ${RETRY_DELAY}s..."
         sleep "$RETRY_DELAY"
-        # Re-read task line in case WPRD was modified
-        task_line=$(get_next_task_line)
         continue
       fi
       mark_task_failed "$current_task"
@@ -1788,9 +1887,15 @@ run_wprd_task() {
 
     # Mark the task as completed: [\] -> [+]
     # Also handles the case where the AI already marked it [+] directly.
-    if grep -q "^- \[\\\\] " "$WPRD_FILE" 2>/dev/null || \
-       grep -q "^- \[ \] ${current_task}" "$WPRD_FILE" 2>/dev/null; then
-      log_debug "Marking task as completed [+]"
+    if [[ -n "$task_line" ]]; then
+      local current_marker
+      current_marker=$(sed -n "${task_line}p" "$WPRD_FILE" 2>/dev/null || true)
+      if [[ "$current_marker" != *"[+]"* ]]; then
+        log_debug "Marking task as completed [+]"
+        mark_task_done "$current_task"
+      fi
+    else
+      # Fallback: try to mark by text match
       mark_task_done "$current_task"
     fi
 
@@ -1815,7 +1920,7 @@ run_wprd_task() {
     return 0
   done
 
-  # All retries exhausted -- mark task as failed: [\] -> [x]
+  # All retries exhausted (only reachable when MAX_RETRIES > 0) -- mark task as failed: [\] -> [x]
   mark_task_failed "$current_task"
   return 1
 }
@@ -1918,7 +2023,8 @@ main() {
   # --- Single task mode ---
   if [[ "$MODE" == "single" ]]; then
     init_run_dir "single_task"
-    printf '  %ssingle task%s\n\n' "${DIM}" "${RESET}"
+    printf '  %ssingle task%s\n' "${DIM}" "${RESET}"
+    printf '  %stail -f %s%s\n\n' "${DIM}" "${run_log/#$HOME/\~}" "${RESET}"
 
     local rc=0
     run_single_task_once "$SINGLE_TASK" || rc=$?
@@ -1948,6 +2054,7 @@ main() {
   fi
 
   printf '%s\n' "$banner"
+  printf '  %stail -f %s%s\n' "${DIM}" "${run_log/#$HOME/\~}" "${RESET}"
 
   # Main loop: iterate until all tasks complete, max iterations reached,
   # or consecutive failures exceed threshold.
