@@ -10,7 +10,9 @@ team7's orchestration system is inspired by [oh-my-openagent](https://github.com
 
 **OmO concepts**: IntentGate (true intent classification), category-based routing, ultrawork mode (continuous autonomous execution), wisdom accumulation (cross-agent learning), boulder protocol (anti-idle enforcement), and skill injection (technology-specific context).
 
-**gstack concepts**: Builder Ethos (Boil the Lake completeness principle, Search Before Exploiting, Three Layers of Knowledge), Safety Guardrails (/careful, /freeze, /guard patterns), Investigation Protocol (Iron Law -- no fixes without investigation), Cross-Validation Protocol (multi-agent finding verification), Engagement Readiness Dashboard (phase gate tracking), Security Sprint Process (Scope -> Plan -> Recon -> Analyze -> Exploit -> Report -> Retro), Post-Engagement Retrospective, and Proactive Agent Suggestions.
+**gstack concepts**: Builder Ethos (Boil the Lake completeness principle, Search Before Exploiting, Three Layers of Knowledge), Safety Guardrails (/careful, /freeze, /guard patterns), Investigation Protocol (Iron Law -- no fixes without investigation), Cross-Validation Protocol (multi-agent finding verification), Engagement Readiness Dashboard (phase gate tracking), Security Sprint Process (Discover -> Scope -> Plan -> Recon -> Analyze -> Exploit -> Deliver -> Verify -> Retro), Post-Engagement Retrospective, Proactive Agent Suggestions, Engagement Discovery Protocol (6 forcing questions), Autoplan Pipeline (Strategic -> Technical -> Compliance -> Scope Lock), Delivery Workflow (readiness checks, evidence audit, packaging), Post-Remediation Verification, Security Posture Baselines, Browser-Based Verification Loop, Report Quality Scoring (0-10 dimensions, security slop detection), Operator Sovereignty Protocol, Confusion Protocol, Self-Regulation Heuristics (exploitation risk budget), Auto-Documentation Sync, Continuous Checkpoint Mode, and ELI16 Communication Mode.
+
+**Compound Engineering concepts** (from [EveryInc/compound-engineering-plugin](https://github.com/EveryInc/compound-engineering-plugin)): Confidence-Anchored Finding Scoring (5 discrete anchors: 0/25/50/75/100 with cross-reviewer promotion and suppression gates), Multi-Persona Tiered Finding Review (6 parallel review personas with fingerprint-based dedup pipeline and remediation classification), Compound Knowledge Store (YAML frontmatter for machine retrieval, category directories, grep-first search, 5-dimension overlap detection, discoverability checks), Right-Sizing Protocol (Quick/Standard/Deep engagement classification matching ceremony to scope), Formal Document Review Before Execution (5 scope review personas dispatched against engagement plans), Smart Escalation Patterns (8-pattern exploitation escalation table for structured failure diagnosis), Session History Mining (prior session transcript search for investigation context), Traceability ID System (S-IDs for scope items, AP-IDs for attack paths, F-IDs for findings, E-IDs for evidence), Protected Artifact Classes, Compound Knowledge Refresh and Maintenance (Keep/Update/Consolidate/Replace/Delete outcomes), and Structured Web Research Methodology (5-phase search: Scope -> Narrow -> Deep Extract -> Gap-Fill -> Stop).
 
 ## Agent Inventory
 
@@ -94,6 +96,34 @@ The primary orchestration agent is defined at:
 |------------|-------------|---------|------------|
 | `t7-smart-contract-auditor.md` | Blockchain Security Specialist | Smart contract auditing (Solana, Cosmos, Substrate) | `solana-vuln-scanner`, `token-integration-analyzer` |
 | `t7-fuzzing-specialist.md` | Fuzzing Specialist | Automated fuzzing and harness generation | `libfuzzer`, `aflpp`, `harness-writing`, `cargo-fuzz` |
+
+### Installed Skills (from skills.sh)
+
+Skills are reusable SKILL.md instruction files that extend agent capabilities. Managed via the `/skills` command.
+
+| Skill | Source | Purpose | Load Command |
+|-------|--------|---------|-------------|
+| `pdf` | anthropics/skills | Read, extract, merge, split, create, OCR PDFs | `skill(name="pdf")` |
+| `docx` | anthropics/skills | Create, read, edit Word documents (.docx) | `skill(name="docx")` |
+| `pptx` | anthropics/skills | Create, read, edit PowerPoint presentations | `skill(name="pptx")` |
+
+**Installation paths:**
+- Canonical: `~/.config/opencode/skills/{pdf,docx,pptx}/` (real files, portable, committed to git)
+- No symlinks -- everything self-contained in `~/.config/opencode/`
+
+**Dependencies (installed):**
+- Python: `pypdf`, `pdfplumber`, `reportlab`, `pytesseract`, `pdf2image`, `markitdown[pptx]`, `Pillow`
+- Node.js (global): `docx`, `pptxgenjs`
+- System: `poppler-utils` (pdftotext, pdftoppm)
+
+**Managing skills:** Use the `/skills` custom command:
+```
+/skills search <query>     Search skills.sh
+/skills add <owner/repo>   Install skill(s)
+/skills list               Show installed skills
+/skills update             Update installed skills
+/skills remove <name>      Remove a skill
+```
 
 ## Test Case Coverage
 
@@ -465,6 +495,10 @@ These queue files are consumed during the EXPLOITATION phase to execute targeted
 - **Assessment Period**: As defined in engagement scope
 
 ### Recent Updates
+- **[Skills Integration]** Added `/skills` custom command for searching, installing, and managing skills from skills.sh
+- **[Skills Integration]** Installed document processing skills (pdf, docx, pptx) from anthropics/skills
+- **[Skills Integration]** Added Document Processing Skill Pack to Skill Injection Protocol in team7.md
+- **[Skills Integration]** Added document processing routing triggers to Smart Routing Logic
 - **[gstack Integration]** Added Builder Ethos: Boil the Lake completeness principle, Search Before Exploiting, Three Layers of Knowledge
 - **[gstack Integration]** Added Safety Guardrails: destructive command warnings, scope lock, evidence preservation
 - **[gstack Integration]** Added Investigation Protocol: Iron Law (no fixes without investigation), three-strike rule, hypothesis-driven analysis
