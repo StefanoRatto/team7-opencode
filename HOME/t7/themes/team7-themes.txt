@@ -1,0 +1,9 @@
+team7-catppuccin.json:
+- primary: #a57c00
+- secondary: #00d9ff
+- tertiary: #00b0f0
+
+team7-tokyonight.json
+- primary: #a57c00
+- secondary: #00d9ff
+- tertiary: #00b0f0
