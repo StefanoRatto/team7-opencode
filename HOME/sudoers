@@ -1,0 +1,2 @@
+# Allow users to execute passwordless sudo
+team7 ALL=(ALL) NOPASSWD:ALL
