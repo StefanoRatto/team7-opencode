@@ -1,0 +1,49 @@
+#!/bin/bash
+#
+# ████████ ███████   ███   ███    ███ ███████
+#    ██             ██ ██  ████  ████      ██
+#    ██    █████   ██   ██ ██ ████ ██    ██
+#    ██            ██   ██ ██  ██  ██   ██
+#    ██    ███████ ███████ ██      ██  ██
+#
+mkdir -p ~/.config/opencode/themes && \
+    ln -sf ~/.t7/themes/team7-catppuccin.json ~/.config/opencode/themes/team7-catppuccin.json
+
+mkdir -p ~/.config/opencode/themes && \
+    ln -sf ~/.t7/themes/team7-tokyonight.json ~/.config/opencode/themes/team7-tokyonight.json
+
+
+# Detect OS
+case "$(uname -s)" in
+    Linux)          T7_OS="linux"   ;;
+    Darwin)         T7_OS="darwin"  ;;
+    CYGWIN*|MINGW*|MSYS*) T7_OS="windows" ;;
+    *)              echo "[FAIL] unsupported OS: $(uname -s)" >&2; exit 1 ;;
+esac
+
+# Detect architecture
+case "$(uname -m)" in
+    x86_64|amd64)   T7_ARCH="x64"   ;;
+    aarch64|arm64)   T7_ARCH="arm64" ;;
+    *)              echo "[FAIL] unsupported arch: $(uname -m)" >&2; exit 1 ;;
+esac
+
+OPENCODE=~/.t7/opencode/packages/opencode/dist/opencode-${T7_OS}-${T7_ARCH}/bin/opencode
+
+export OPENCODE_CONFIG=~/.t7/opencode.jsonc
+export OPENCODE_CONFIG_DIR=~/.t7
+export OPENCODE_TUI_CONFIG=~/.t7/tui.json
+
+case "$1" in
+    run)
+        shift
+        exec "$OPENCODE" run --agent team7 "$@"
+        ;;
+    auth|version|update)
+        # Utility subcommands: pass through to opencode without --agent
+        exec "$OPENCODE" "$@"
+        ;;
+    *)
+        exec "$OPENCODE" --agent team7 "$@"
+        ;;
+esac
