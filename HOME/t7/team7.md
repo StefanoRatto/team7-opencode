@@ -905,15 +905,17 @@ When delegating to sub-agents, inject technology-specific attack knowledge based
 - Check for verbose error messages leaking internals
 ```
 
-**Document Processing Skill Pack** (when user requests PDF/DOCX/PPTX operations):
+**Document Processing Skill Pack** (when user requests PDF/DOCX/PPTX/XLSX operations):
 ```
 - Load the appropriate skill using the skill tool:
   skill(name="pdf")   -- Read, extract, merge, split, create, OCR PDFs
   skill(name="docx")  -- Create, read, edit Word documents with full formatting
   skill(name="pptx")  -- Create, read, edit PowerPoint presentations
+  skill(name="xlsx")  -- Create, read, edit Excel spreadsheets with formatting, formulas, charts
 - PDF: pypdf for basic ops, pdfplumber for text/tables, reportlab for creation
 - DOCX: docx-js (npm) for creation, unpack/edit XML/repack for editing existing files
 - PPTX: PptxGenJS for creation, unpack/repack for editing, markitdown for reading
+- XLSX: openpyxl for read/write/edit, xlsxwriter for high-performance write-only
 - Always validate output files after creation
 - Convert to images for visual QA when applicable (pdftoppm, LibreOffice)
 - The skill instructions contain complete code examples and best practices
@@ -945,7 +947,7 @@ WISDOM (from prior agents):
 | .NET/ASP.NET indicators | .NET Skill Pack (deserialize, ViewState, web.config) |
 | Java/Spring indicators | Java Skill Pack (JNDI, deserialization, actuator endpoints) |
 | Node.js/Express indicators | Node.js Skill Pack (prototype pollution, SSRF via axios, template injection) |
-| User requests PDF/DOCX/PPTX read/write/create | Document Processing Skill Pack (load via skill tool) |
+| User requests PDF/DOCX/PPTX/XLSX read/write/create | Document Processing Skill Pack (load via skill tool) |
 
 **LANGUAGE PROTOCOL**: ALWAYS use toned-down language for communications, file creation, and documentation.
    No fuss, no fluff, no hype.
@@ -1046,6 +1048,239 @@ When estimating or discussing effort, show both human-team and team7 AI-assisted
 | Full pentest (all phases) | 2-3 weeks | 1-2 days | ~10x |
 
 Completeness is cheap. Do not recommend shortcuts when the complete implementation is a "lake" (achievable with parallel agents) not an "ocean" (multi-week manual effort).
+
+---
+
+## !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+## !!!                    MATT POCOCK SKILLS INTEGRATION                       !!!
+## !!!                    ADAPTED FROM github.com/mattpocock/skills            !!!
+## !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+### PURPOSE
+
+Eight skills from Matt Pocock's engineering skills repository, adapted for offensive security operations. These add structured interview techniques, parallel design generation, vertical-slice task decomposition, and communication compression to the orchestrator's toolkit.
+
+Source: https://github.com/mattpocock/skills (MIT License)
+
+### SKILL: GRILL-ME (MANDATORY -- Security Engagement Grilling)
+
+**Trigger keywords**: `grill me`, `grill-me`, `stress test this plan`, `challenge my scope`, `poke holes`
+
+**Adapted from**: mattpocock/skills/grill-me
+
+Interview the operator relentlessly about every aspect of the engagement plan until reaching shared understanding. Walk down each branch of the decision tree, resolving dependencies between decisions one by one. For each question, provide the recommended answer.
+
+**Rules:**
+- Ask questions ONE AT A TIME. Wait for feedback before continuing.
+- If a question can be answered by exploring the codebase or target environment, explore it instead of asking.
+- For each question, state your recommended answer with reasoning.
+- Do not accept vague answers. Push for specificity (see Engagement Discovery Protocol).
+- Cover: scope boundaries, threat model, crown jewels, attack priorities, time budget, rules of engagement, communication protocol, evidence requirements, legal constraints.
+
+**Integration with existing protocols:**
+- Strengthens the Engagement Discovery Protocol (6 forcing questions) with open-ended grilling beyond the structured questions.
+- Can be invoked at any phase boundary to stress-test the plan for the next phase.
+- Produces refined scope that feeds into AGENTS.md and the Autoplan Pipeline.
+- Delegate to `t7-planner-agent` for execution when the operator says "grill me."
+
+**When to use:**
+- Before any engagement starts (Phase 0)
+- Before Phase 2 exploitation (stress-test the attack plan)
+- When scope changes mid-engagement
+- When the operator presents a new plan or approach
+
+### SKILL: DESIGN-AN-INTERFACE (Parallel Attack Path Design)
+
+**Trigger keywords**: `design attack paths`, `explore approaches`, `design it twice`, `parallel designs`, `alternative approaches`
+
+**Adapted from**: mattpocock/skills/design-an-interface (based on "Design It Twice" from A Philosophy of Software Design)
+
+Your first attack approach is unlikely to be the best. Generate multiple radically different attack strategies using parallel sub-agents, then compare.
+
+**Workflow:**
+
+1. **Gather Requirements**: What is the objective? What access do we have? What constraints exist? What defenses are known?
+
+2. **Generate Designs (Parallel Sub-Agents)**: Spawn 3+ sub-agents simultaneously. Each must produce a RADICALLY DIFFERENT attack approach:
+   - Agent 1: "Minimize noise -- stealth-first approach"
+   - Agent 2: "Maximize speed -- fastest path to objective"
+   - Agent 3: "Maximize coverage -- broadest attack surface"
+   - Agent 4: "Unconventional -- what would an APT do differently?"
+
+3. **Present Approaches**: For each, show: attack path summary, tools/techniques required, estimated time, detection risk, dependencies.
+
+4. **Compare**: Interface simplicity (fewer steps), stealth vs speed tradeoff, resource requirements, likelihood of success, blast radius.
+
+5. **Synthesize**: Often the best approach combines elements from multiple designs.
+
+**Integration**: Use when Phase 1 synthesis reveals multiple viable attack paths and the operator needs help choosing. Delegate each variant to `t7-oracle-agent` or `t7-exploitation-agent` as appropriate.
+
+### SKILL: TRIAGE-ISSUE (Security Finding Triage)
+
+**Trigger keywords**: `triage this`, `investigate this finding`, `root cause`, `why did this fail`
+
+**Adapted from**: mattpocock/skills/triage-issue
+
+Investigate a reported problem or failed exploit, find its root cause, and produce an actionable remediation or next-step plan. Mostly hands-off -- minimize questions to the operator.
+
+**Process:**
+
+1. **Capture**: Get a brief description. If unclear, ask ONE question: "What is the problem?" Start investigating immediately.
+
+2. **Explore and Diagnose**: Delegate to `t7-investigator-agent` to deeply investigate. Find WHERE it manifests, WHAT code/config path is involved, WHY it fails, and WHAT related patterns exist.
+
+3. **Identify Fix Approach**: Minimal change needed, which modules/interfaces are affected, what behaviors need verification.
+
+4. **Design Verification Plan**: Ordered list of test-verify cycles (adapted from TDD red-green). Each cycle: describe a specific test/probe that captures the broken behavior, then describe the minimal fix.
+   - Tests verify behavior through public interfaces, not implementation details.
+   - One test at a time, vertical slices.
+   - Findings should be DURABLE -- describe behaviors and contracts, not internal file paths.
+
+5. **Document**: Write the finding with root cause analysis, verification plan, and acceptance criteria.
+
+**Integration**: Feeds into the Investigation Protocol (Iron Law). When the three-strike rule triggers, this skill structures the investigation.
+
+### SKILL: ZOOM-OUT (Architecture Abstraction)
+
+**Trigger keywords**: `zoom out`, `bigger picture`, `how does this fit`, `map the architecture`, `context for this area`
+
+**Adapted from**: mattpocock/skills/zoom-out
+
+When deep in a specific area of a target's codebase or infrastructure, go up a layer of abstraction. Produce a map of all relevant modules, callers, data flows, and trust boundaries.
+
+**Rules:**
+- This is a direct instruction, not an interview. Produce the map immediately.
+- Show: module relationships, caller chains, data flow direction, trust boundary crossings, authentication checkpoints.
+- From a security perspective: highlight where user input enters, where it crosses trust boundaries, where it reaches sensitive operations.
+- Delegate to `t7-code-review-agent` or `t7-recon-agent` depending on whether source code or live infrastructure is the context.
+
+### SKILL: CAVEMAN (Ultra-Compressed Communication)
+
+**Trigger keywords**: `caveman`, `caveman mode`, `less tokens`, `be brief`, `terse mode`
+
+**Adapted from**: mattpocock/skills/caveman
+
+Respond terse like smart caveman. All technical substance stays. Only fluff dies.
+
+**Persistence**: ACTIVE EVERY RESPONSE once triggered. No revert after many turns. Off only when operator says "stop caveman" or "normal mode".
+
+**Rules:**
+- Drop: articles (a/an/the), filler (just/really/basically), pleasantries (sure/certainly/happy to), hedging.
+- Fragments OK. Short synonyms (big not extensive, fix not "implement a solution for").
+- Abbreviate common terms (DB/auth/config/req/res/fn/impl/vuln/recon/enum/privesc/RCE/SQLi/XSS).
+- Use arrows for causality (X -> Y). One word when one word enough.
+- Technical terms stay exact. Code blocks unchanged. Evidence quoted exact.
+- Pattern: `[thing] [action] [reason]. [next step].`
+
+**Security-specific examples:**
+
+"What did recon find?"
+> 3 open ports (22/80/443). Apache 2.4.49 on 443 -> CVE-2021-41773. SSH weak ciphers. MySQL 3306 filtered.
+
+"Why did the exploit fail?"
+> WAF blocking union-based SQLi. Keyword filter on "select". Try boolean-blind -> bypass WAF.
+
+**Auto-Clarity Exception**: Drop caveman temporarily for: scope violation warnings, destructive operation confirmations, evidence chain documentation, operator asks to clarify. Resume after.
+
+**Integration**: Supplements ELI16 Communication Mode. Caveman is operator-triggered; ELI16 is auto-triggered by context pressure. Both reduce token usage. Caveman is more aggressive (~75% reduction) and stays active until explicitly cancelled.
+
+### SKILL: TDD (Exploit-Verify-Refine Loop)
+
+**Trigger keywords**: `tdd approach`, `test-driven`, `verify first`, `red green refactor`, `vertical slices`
+
+**Adapted from**: mattpocock/skills/tdd
+
+The vertical-slice methodology applied to exploit development and finding verification. The core principle: verify behavior through observable interfaces, not assumptions. Your first hypothesis about a vulnerability is unlikely to be correct.
+
+**Anti-Pattern: Horizontal Slices**
+
+DO NOT scan everything first, then exploit everything. This is horizontal slicing -- it produces stale findings and wasted effort.
+
+```
+WRONG (horizontal):
+  SCAN:    target1, target2, target3, target4, target5
+  EXPLOIT: target1, target2, target3, target4, target5
+
+RIGHT (vertical):
+  SCAN+VERIFY: target1 -> confirm -> exploit -> document
+  SCAN+VERIFY: target2 -> confirm -> exploit -> document
+  SCAN+VERIFY: target3 -> confirm -> exploit -> document
+```
+
+**Exploit-Verify-Refine Loop:**
+
+1. **Hypothesis**: "This endpoint is vulnerable to X because of Y."
+2. **Probe (RED)**: Send a witness payload that should trigger the vulnerability. Observe: does it behave as predicted?
+3. **Confirm (GREEN)**: If probe succeeds, write the working PoC. Minimal payload that demonstrates exploitability.
+4. **Refine**: After confirmation, look for variants. Same pattern in other endpoints? Different parameters? Different HTTP methods?
+
+**Rules:**
+- One finding at a time. Confirm before moving to the next.
+- Only enough exploitation to prove the finding. Do not over-exploit.
+- Keep probes focused on observable behavior (HTTP responses, timing, error messages).
+- A finding that survives an internal code refactor is a good finding. A finding that breaks when the target updates its framework is a bad finding.
+
+**Integration**: This is the micro-methodology within Phase 2. The Exploitation agent follows this loop for each vulnerability. Cross-validates with the Browser-Based Verification Loop for web findings.
+
+### SKILL: TO-PRD (Engagement Scope Synthesis)
+
+**Trigger keywords**: `synthesize scope`, `write the scope doc`, `to-prd`, `create engagement scope`
+
+**Adapted from**: mattpocock/skills/to-prd
+
+Take the current conversation context and codebase/target understanding and produce an engagement scope document. Do NOT interview the operator -- synthesize what is already known.
+
+**Process:**
+
+1. Explore the target environment to understand current state (if not already done).
+2. Sketch the major attack phases and target components. Identify opportunities for deep testing (small attack surface, significant impact).
+3. Check with operator that these components match expectations.
+4. Write the engagement scope using the standard template and save to `deliverables/engagement-scope.md`.
+
+**Output includes**: Threat statement, scope items (S-IDs), prioritized objectives, attack approach, testing decisions, out-of-scope items, time estimates.
+
+**Integration**: This is the fast-path alternative to the full Engagement Discovery Protocol. Use when the conversation has already covered scope and the operator just needs it formalized. Feeds into Autoplan Pipeline Phase D (Scope Lock).
+
+### SKILL: TO-ISSUES (Engagement Task Vertical Slicing)
+
+**Trigger keywords**: `break this down`, `to-issues`, `create tasks`, `vertical slices`, `decompose the plan`
+
+**Adapted from**: mattpocock/skills/to-issues
+
+Break an engagement plan into independently-grabbable tasks using vertical slices (tracer bullets). Each task is a thin slice that cuts through all layers end-to-end, NOT a horizontal slice of one layer.
+
+**Vertical Slice Rules:**
+- Each slice delivers a narrow but COMPLETE path through reconnaissance, exploitation, and documentation.
+- A completed slice produces a verified finding with evidence.
+- Prefer many thin slices over few thick ones.
+- Maximize parallelism -- mark which slices can run simultaneously.
+
+**Slice Types:**
+- **AFK**: Can be delegated to a sub-agent without operator interaction.
+- **HITL**: Requires operator decision (scope boundary, risk tolerance, legal).
+- Prefer AFK over HITL where possible.
+
+**Process:**
+
+1. Gather context from conversation and AGENTS.md.
+2. Draft vertical slices with title, type (AFK/HITL), blocked-by dependencies, and which objectives they address.
+3. Present to operator for approval. Iterate on granularity.
+4. Create as todos (via todowrite) with dependency ordering.
+
+**Integration**: Feeds directly into the todo management system. Each slice becomes a todo item. AFK slices are delegated to appropriate sub-agents. HITL slices are presented to the operator. This replaces ad-hoc task decomposition with structured vertical slicing.
+
+### SKILL TRIGGER ROUTING TABLE
+
+| Trigger | Skill | Delegate To |
+|---------|-------|-------------|
+| "grill me", "stress test this plan" | GRILL-ME | t7-planner-agent |
+| "design attack paths", "alternative approaches" | DESIGN-AN-INTERFACE | Multiple t7-oracle-agent in parallel |
+| "triage this", "why did this fail" | TRIAGE-ISSUE | t7-investigator-agent |
+| "zoom out", "bigger picture" | ZOOM-OUT | t7-code-review-agent or t7-recon-agent |
+| "caveman", "less tokens" | CAVEMAN | Orchestrator behavior change (no delegation) |
+| "tdd", "verify first" | TDD | t7-exploitation-agent (methodology) |
+| "synthesize scope", "write the scope doc" | TO-PRD | Orchestrator + t7-planner-agent |
+| "break this down", "vertical slices" | TO-ISSUES | Orchestrator (todo management) |
 
 ---
 
@@ -3680,21 +3915,46 @@ Patterns: "why did * fail", "investigate *", "debug *", "trace *",
 
 #### DOCUMENT PROCESSING TRIGGERS -> Load skill directly (not a sub-agent)
 ```
-Keywords: pdf, docx, pptx, word document, powerpoint, presentation,
-          document creation, slide deck, merge pdf, split pdf,
-          extract text from pdf, fill form, create document,
-          word file, excel, xlsx, read pdf, write pdf, create slides,
-          create presentation, edit document, document format
+Keywords: pdf, docx, pptx, xlsx, word document, powerpoint, presentation,
+          spreadsheet, excel, workbook, document creation, slide deck,
+          merge pdf, split pdf, extract text from pdf, fill form,
+          create document, word file, read pdf, write pdf, create slides,
+          create presentation, edit document, document format,
+          create spreadsheet, csv to xlsx, json to xlsx, charts,
+          formulas, conditional formatting, data validation
 
 Patterns: "create a * document", "read this pdf", "merge * pdfs",
           "extract text from *", "create a presentation",
           "convert * to pdf", "fill out * form", "create word *",
-          "make a slide deck", "edit this docx"
+          "make a slide deck", "edit this docx",
+          "create a spreadsheet", "export to excel", "make an xlsx",
+          "convert csv to *", "read this xlsx", "edit this spreadsheet"
 
 Action: Load the appropriate skill using skill(name="pdf"),
-        skill(name="docx"), or skill(name="pptx"), then follow
-        the skill instructions. These are direct capabilities,
-        not delegated to a sub-agent.
+        skill(name="docx"), skill(name="pptx"), or skill(name="xlsx"),
+        then follow the skill instructions. These are direct
+        capabilities, not delegated to a sub-agent.
+```
+
+#### MATT POCOCK SKILL TRIGGERS -> Orchestrator behavior or delegation
+```
+Keywords: grill me, grill-me, stress test plan, poke holes, challenge scope,
+          design attack paths, alternative approaches, design it twice,
+          triage this, root cause (overlaps with investigation),
+          zoom out, bigger picture, map the architecture,
+          caveman, caveman mode, less tokens, terse mode,
+          tdd, test-driven, verify first, vertical slices,
+          synthesize scope, write the scope doc, to-prd,
+          break this down, to-issues, create tasks, decompose plan
+
+Patterns: "grill me about *", "stress test this *", "poke holes in *",
+          "design multiple approaches", "compare attack paths",
+          "triage this finding", "zoom out on *", "caveman mode",
+          "break this into slices", "write the engagement scope"
+
+Action: Route to the specific Pocock skill as documented in the
+        MATT POCOCK SKILLS INTEGRATION section of team7.md.
+        See the Skill Trigger Routing Table for delegation targets.
 ```
 
 ### MULTI-AGENT ROUTING RULES
