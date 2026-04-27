@@ -6,11 +6,13 @@
 
 This directory contains all specialized sub-agents that support the team7 primary agent in executing the Red Team Exercise Test Plan.
 
-team7's orchestration system is inspired by [oh-my-openagent](https://github.com/code-yeongyu/oh-my-openagent) (OmO) and [gstack](https://github.com/garrytan/gstack), adapting their multi-agent coordination patterns for offensive security operations.
+team7's orchestration system is inspired by [oh-my-openagent](https://github.com/code-yeongyu/oh-my-openagent) (OmO), [gstack](https://github.com/garrytan/gstack), and [mattpocock/skills](https://github.com/mattpocock/skills), adapting their multi-agent coordination patterns, engineering discipline, and structured interview techniques for offensive security operations.
 
 **OmO concepts**: IntentGate (true intent classification), category-based routing, ultrawork mode (continuous autonomous execution), wisdom accumulation (cross-agent learning), boulder protocol (anti-idle enforcement), and skill injection (technology-specific context).
 
 **gstack concepts**: Builder Ethos (Boil the Lake completeness principle, Search Before Exploiting, Three Layers of Knowledge), Safety Guardrails (/careful, /freeze, /guard patterns), Investigation Protocol (Iron Law -- no fixes without investigation), Cross-Validation Protocol (multi-agent finding verification), Engagement Readiness Dashboard (phase gate tracking), Security Sprint Process (Discover -> Scope -> Plan -> Recon -> Analyze -> Exploit -> Deliver -> Verify -> Retro), Post-Engagement Retrospective, Proactive Agent Suggestions, Engagement Discovery Protocol (6 forcing questions), Autoplan Pipeline (Strategic -> Technical -> Compliance -> Scope Lock), Delivery Workflow (readiness checks, evidence audit, packaging), Post-Remediation Verification, Security Posture Baselines, Browser-Based Verification Loop, Report Quality Scoring (0-10 dimensions, security slop detection), Operator Sovereignty Protocol, Confusion Protocol, Self-Regulation Heuristics (exploitation risk budget), Auto-Documentation Sync, Continuous Checkpoint Mode, and ELI16 Communication Mode.
+
+**Matt Pocock concepts**: Grill-Me (relentless plan interrogation), Design-An-Interface (parallel radically-different designs via sub-agents), TDD vertical slices (one test -> one implementation -> repeat), Triage-Issue (root-cause investigation with TDD fix plans), Zoom-Out (abstraction-level elevation), Caveman Mode (ultra-compressed communication), To-PRD (conversation-to-scope synthesis), and To-Issues (vertical-slice task decomposition with AFK/HITL classification).
 
 **Compound Engineering concepts** (from [EveryInc/compound-engineering-plugin](https://github.com/EveryInc/compound-engineering-plugin)): Confidence-Anchored Finding Scoring (5 discrete anchors: 0/25/50/75/100 with cross-reviewer promotion and suppression gates), Multi-Persona Tiered Finding Review (6 parallel review personas with fingerprint-based dedup pipeline and remediation classification), Compound Knowledge Store (YAML frontmatter for machine retrieval, category directories, grep-first search, 5-dimension overlap detection, discoverability checks), Right-Sizing Protocol (Quick/Standard/Deep engagement classification matching ceremony to scope), Formal Document Review Before Execution (5 scope review personas dispatched against engagement plans), Smart Escalation Patterns (8-pattern exploitation escalation table for structured failure diagnosis), Session History Mining (prior session transcript search for investigation context), Traceability ID System (S-IDs for scope items, AP-IDs for attack paths, F-IDs for findings, E-IDs for evidence), Protected Artifact Classes, Compound Knowledge Refresh and Maintenance (Keep/Update/Consolidate/Replace/Delete outcomes), and Structured Web Research Methodology (5-phase search: Scope -> Narrow -> Deep Extract -> Gap-Fill -> Stop).
 
@@ -106,13 +108,14 @@ Skills are reusable SKILL.md instruction files that extend agent capabilities. M
 | `pdf` | anthropics/skills | Read, extract, merge, split, create, OCR PDFs | `skill(name="pdf")` |
 | `docx` | anthropics/skills | Create, read, edit Word documents (.docx) | `skill(name="docx")` |
 | `pptx` | anthropics/skills | Create, read, edit PowerPoint presentations | `skill(name="pptx")` |
+| `xlsx` | team7 (custom) | Create, read, edit Excel spreadsheets (.xlsx) with formatting, formulas, charts | `skill(name="xlsx")` |
 
 **Installation paths:**
-- Canonical: `~/.config/opencode/skills/{pdf,docx,pptx}/` (real files, portable, committed to git)
+- Canonical: `~/.config/opencode/skills/{pdf,docx,pptx,xlsx}/` (real files, portable, committed to git)
 - No symlinks -- everything self-contained in `~/.config/opencode/`
 
 **Dependencies (installed):**
-- Python: `pypdf`, `pdfplumber`, `reportlab`, `pytesseract`, `pdf2image`, `markitdown[pptx]`, `Pillow`
+- Python: `pypdf`, `pdfplumber`, `reportlab`, `pytesseract`, `pdf2image`, `markitdown[pptx]`, `Pillow`, `openpyxl`, `xlsxwriter`
 - Node.js (global): `docx`, `pptxgenjs`
 - System: `poppler-utils` (pdftotext, pdftoppm)
 
@@ -334,7 +337,7 @@ Each sub-agent is configured with:
 
 See `opencode.jsonc` for full configuration details.
 
-## OmO-Inspired + gstack-Inspired Design Patterns
+## OmO-Inspired + gstack-Inspired + Pocock-Inspired Design Patterns
 
 ### Patterns Integrated from oh-my-openagent
 
@@ -356,6 +359,21 @@ team7 adapts the following patterns from [oh-my-openagent](https://github.com/co
 | **/handoff** | Structured Handoff Format for session rotation | team7.md - Structured Handoff |
 | **Fallback Chains** | Agent fallback chains documented per capability | team7.md - Fallback Logic |
 | **Session Continuity** | Three-tier memory + session archive + structured handoff | team7.md - Adaptive Context |
+
+### Patterns Integrated from Matt Pocock Skills
+
+team7 adapts the following skills from [mattpocock/skills](https://github.com/mattpocock/skills) for offensive security:
+
+| Pocock Skill | team7 Adaptation | Where Documented |
+|-------------|-----------------|------------------|
+| **grill-me** (MANDATORY) | Security Engagement Grilling: relentless interview about engagement plans until every branch resolved | team7.md - Grill-Me Skill |
+| **design-an-interface** | Parallel Attack Path Design: spawn 3+ sub-agents with radically different attack strategies, then compare | team7.md - Design-An-Interface Skill |
+| **triage-issue** | Security Finding Triage: investigate root cause, produce verification plan with test-verify cycles | team7.md - Triage-Issue Skill |
+| **zoom-out** | Architecture Zoom-Out: go up a layer of abstraction, map modules/callers/trust boundaries | team7.md - Zoom-Out Skill |
+| **caveman** | Caveman Mode: ultra-compressed communication (~75% token reduction) while preserving technical accuracy | team7.md - Caveman Skill |
+| **tdd** | Exploit-Verify-Refine Loop: vertical-slice methodology for exploit development (probe -> confirm -> refine) | team7.md - TDD Skill |
+| **to-prd** | Engagement Scope Synthesis: synthesize conversation context into formal engagement scope document | team7.md - To-PRD Skill |
+| **to-issues** | Task Vertical Slicing: break engagement plans into thin AFK/HITL vertical slices with dependency ordering | team7.md - To-Issues Skill |
 
 ### Patterns Integrated from gstack
 
@@ -495,6 +513,12 @@ These queue files are consumed during the EXPLOITATION phase to execute targeted
 - **Assessment Period**: As defined in engagement scope
 
 ### Recent Updates
+- **[Skills Integration]** Added xlsx skill for Excel spreadsheet creation, reading, and editing (openpyxl + xlsxwriter)
+- **[Skills Integration]** Updated Document Processing Skill Pack and routing triggers to include xlsx
+- **[Matt Pocock Skills Integration]** Integrated 8 skills from mattpocock/skills adapted for offensive security: grill-me (mandatory), design-an-interface, triage-issue, zoom-out, caveman, tdd, to-prd, to-issues
+- **[Matt Pocock Skills Integration]** Added Skill Trigger Routing Table for keyword-based activation of Pocock skills
+- **[Matt Pocock Skills Integration]** Added Caveman Mode as operator-triggered ultra-compressed communication supplement to ELI16
+- **[Matt Pocock Skills Integration]** Added Exploit-Verify-Refine Loop (TDD-adapted) as micro-methodology for Phase 2 exploitation
 - **[Skills Integration]** Added `/skills` custom command for searching, installing, and managing skills from skills.sh
 - **[Skills Integration]** Installed document processing skills (pdf, docx, pptx) from anthropics/skills
 - **[Skills Integration]** Added Document Processing Skill Pack to Skill Injection Protocol in team7.md
