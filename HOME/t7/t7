@@ -35,14 +35,24 @@ export OPENCODE_CONFIG_DIR=~/.t7
 export OPENCODE_TUI_CONFIG=~/.t7/tui.json
 
 case "$1" in
+    # Non-interactive: run a prompt through the team7 agent
     run)
         shift
         exec "$OPENCODE" run --agent team7 "$@"
         ;;
-    auth|version|update)
-        # Utility subcommands: pass through to opencode without --agent
+    # Utility subcommands: pass through to opencode without --agent
+    auth|web|serve|update)
         exec "$OPENCODE" "$@"
         ;;
+    # Version: show the team7 build version
+    version|-version|--version|-v)
+        exec "$OPENCODE" --version
+        ;;
+    # Help: pass through
+    help|--help|-h)
+        exec "$OPENCODE" --help
+        ;;
+    # Default: launch TUI with team7 agent
     *)
         exec "$OPENCODE" --agent team7 "$@"
         ;;
